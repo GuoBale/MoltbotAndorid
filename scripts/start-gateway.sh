@@ -222,15 +222,15 @@ if [ -z "$CLAWDBOT_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g clawdbot --dept
     CLAWDBOT_CMD="npx clawdbot"
 fi
 if [ -n "$CLAWDBOT_CMD" ]; then
-    # 确保 gateway --port 正确传入：多词命令用 eval 避免路径含空格/换行导致落入 Node REPL
-    echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway --port ${GATEWAY_PORT}${NC}"
+    # 使用 gateway run 在前台运行（仅 gateway 可能走 service 逻辑并静默退出）；--verbose 便于看到日志
+    echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway run --port ${GATEWAY_PORT} --verbose${NC}"
     case "$CLAWDBOT_CMD" in
         "node "*)
             CLAWDBOT_NODE_PATH="${CLAWDBOT_CMD#node }"
-            exec node "$CLAWDBOT_NODE_PATH" gateway --port "${GATEWAY_PORT}"
+            exec node "$CLAWDBOT_NODE_PATH" gateway run --port "${GATEWAY_PORT}" --verbose
             ;;
         *)
-            exec $CLAWDBOT_CMD gateway --port "${GATEWAY_PORT}"
+            exec $CLAWDBOT_CMD gateway run --port "${GATEWAY_PORT}" --verbose
             ;;
     esac
 else
@@ -246,12 +246,12 @@ else
         NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
         echo "当前 npm 全局目录: ${NPM_ROOT:-（无法获取）}"
         if [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ]; then
-            echo -e "${YELLOW}若已安装于此目录，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+            echo -e "${YELLOW}若已安装于此目录，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
         else
             echo "安装后可用以下命令确认路径: npm root -g && ls \$(npm root -g)/clawdbot/dist/cli/"
         fi
     else
-        echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
+        echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
     fi
     exit 1
 fi

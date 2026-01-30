@@ -326,6 +326,8 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 
 修改后保存，再运行 `./scripts/start-gateway.sh`。
 
+若 Gateway **仍无任何输出、退出码 0 即退出**，请确认使用 **`gateway run`** 在前台运行（不要只写 `gateway`）。clawdbot 文档要求用 `gateway run` 或 `gateway` 的前台别名；脚本已改为执行 **`gateway run --port 18789 --verbose`**。手动启动可试：`node .../run-main.js gateway run --port 18789 --verbose`。
+
 ### clawdbot 报错 `JSON5: invalid character` / Failed to read config
 
 若启动时出现 **`Failed to read config at .../clawdbot.json SyntaxError: JSON5: invalid character '\"' at 98:5`**（行号/列号可能不同），说明 **`~/.clawdbot/clawdbot.json` 有语法错误**，多为多写/少写引号、逗号或某行有非法字符。
