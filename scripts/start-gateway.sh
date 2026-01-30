@@ -90,11 +90,25 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：按 PATH → npm 全局 prefix/bin → ~/clawdbot 源码 查找 clawdbot
+# 启动 Gateway：查找 clawdbot。Android/Termux 上优先用 node 直连 cli.js，避免 clawdbot 包装落入 Node REPL
 CLAWDBOT_CMD=""
-if command -v clawdbot &> /dev/null; then
+ON_ANDROID="${ON_ANDROID:-}"
+[ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
+
+if [ -n "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
+    # Android/Termux：优先用 node 直接运行全局包 cli，避免 "clawdbot" 命令在出错时落入 Node REPL
+    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
+    if [ -n "$CLAWDBOT_PKG" ]; then
+        if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
+        elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
+        fi
+    fi
+fi
+if [ -z "$CLAWDBOT_CMD" ] && command -v clawdbot &> /dev/null; then
     CLAWDBOT_CMD="clawdbot"
-elif npm list -g clawdbot --depth=0 &>/dev/null; then
+elif [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
     if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
         CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
@@ -108,7 +122,7 @@ if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
         CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
     fi
 fi
-# 已全局安装但 bin 中无可执行文件时：用 node 直接运行全局包内的 CLI 入口
+# 已全局安装但尚未选定：用 node 直接运行全局包内的 CLI 入口
 if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
     if [ -n "$CLAWDBOT_PKG" ]; then
