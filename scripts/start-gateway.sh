@@ -151,7 +151,10 @@ ON_ANDROID="${ON_ANDROID:-}"
 # Android/Termux：必须用 node 直接运行 CLI，不依赖 npm list 成功；优先 run-main.js（当前包结构）
 if [ -n "$ON_ANDROID" ] && command -v npm &>/dev/null; then
     CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
-    [ -z "$CLAWDBOT_PKG" ] && [ -d "$(npm root -g 2>/dev/null)/clawdbot" ] && CLAWDBOT_PKG="$(npm root -g 2>/dev/null | tr -d '\n\r')/clawdbot"
+    if [ -z "$CLAWDBOT_PKG" ]; then
+        NPM_ROOT_G="$(npm root -g 2>/dev/null | tr -d '\n\r')"
+        [ -n "$NPM_ROOT_G" ] && [ -d "$NPM_ROOT_G/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT_G/clawdbot"
+    fi
     if [ -n "$CLAWDBOT_PKG" ] && [ -d "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
