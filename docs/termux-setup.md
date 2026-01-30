@@ -202,7 +202,7 @@ mkdir -p ~/.clawdbot
 moltbot gateway init
 
 # 编辑配置 (可选)
-nano ~/.clawdbot/moltbot.json
+nano ~/.clawdbot/clawdbot.json
 ```
 
 ## 6. 配置 Gateway 扩展

@@ -135,7 +135,7 @@ WebSocket: ws://<device-ip>:18789
 
 1. **安装并配置好扩展**  
    运行 `./scripts/install-gateway.sh`（会同步 gateway-extension 到 `~/gateway-extension` 并构建）。  
-   配置文件 `~/.clawdbot/moltbot.json` 里需包含 **`gateway.extensions`**，指向扩展入口，例如：
+   配置文件 **`~/.clawdbot/clawdbot.json`**（clawdbot 使用此路径，不是 moltbot.json）里需包含 **`gateway.extensions`**，指向扩展入口，例如：
    ```json
    {
      "gateway": {
@@ -158,7 +158,7 @@ WebSocket: ws://<device-ip>:18789
 
 4. **若读不到通讯录**  
    - 确认 Bridge 应用已授予通讯录权限。  
-   - 确认 `~/.clawdbot/moltbot.json` 中有 `gateway.extensions` 且路径正确（`~/gateway-extension/dist/index.js` 存在）。  
+   - 确认 `~/.clawdbot/clawdbot.json` 中有 `gateway.extensions` 且路径正确（`~/gateway-extension/dist/index.js` 存在）。  
    - 确认 Gateway 启动日志中有类似 `[Android Bridge] Extension activated`，表示扩展已加载。
 
 5. **飞书 / 对话 bot 回复「无法访问通讯录」**  
@@ -173,6 +173,13 @@ WebSocket: ws://<device-ip>:18789
      当用户询问“通讯录”“联系人”“短信”时，请直接调用对应工具并基于返回结果回答。
      ```  
    这样 bot 会知道「可以通过工具访问通讯录」，不再误报“无法访问”。
+
+6. **已加上述提示词仍报错（Gateway service install / 无法重启 / android 工具未注册）**  
+   提示词**没有错**，报错来自**环境**：Gateway 未正确跑在手机上，或 Operator 未连上带扩展的 Gateway。  
+   - **手机端**：Bridge Service 已启动；在 Termux 执行 **`./scripts/start-gateway.sh`** 且**不要关**，日志里应有 **`[Android Bridge] Extension activated`**；若没有，检查 `~/.clawdbot/clawdbot.json` 的 **`gateway.extensions`** 是否包含 `~/gateway-extension/dist/index.js`，且 `~/gateway-extension/dist/` 已存在（没有则先运行 `./scripts/install-gateway.sh`）。  
+   - **连接**：Operator/飞书 的 Gateway 地址为 **`ws://<手机 IP>:18789`**，手机与运行 Operator 的机器网络互通。  
+   - **不要**在 Operator 里点「重启 Gateway」——在 Android 上不支持远程重启，需在手机 Termux 里手动重新运行 `./scripts/start-gateway.sh`。  
+   满足以上后，再发「查通讯录」等，bot 会按提示词调用 `android_contacts_list` 等工具并正常返回。
 
 ## 如何通过 clawdbot 访问手机短信
 
@@ -285,6 +292,12 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 - 表示某处（如飞书/Operator）在尝试在手机上执行「安装 Gateway 服务」类命令，而 clawdbot 在 Android 上不支持该操作。
 - **不要在手机 Termux 里执行** `clawdbot gateway install`、`clawdbot node run` 等会触发「安装服务」的命令；**只运行** `./scripts/start-gateway.sh` 启动 Gateway 即可。
 
+**若提示「在 Termux 上无法重启 Gateway 服务」或 `Gateway restart is disabled. Set commands.restart=true`：**
+
+- 表示从飞书/Operator 侧**远程重启** Gateway 在 Android 上不可用或未开启（`commands.restart` 未设为 true）。
+- **在手机上手动重启即可**：在 Termux 里先结束占用端口的进程（若有，例如 `kill <pid>`），再执行 **`./scripts/start-gateway.sh`**。无需在 Operator 里点「重启」。
+- 提示里的「确认 Clawdbot App 正在运行」在本方案中对应：**Bridge Service 应用已启动** + **Termux 里已运行** `./scripts/start-gateway.sh`（无单独「Clawdbot App」）。
+
 ### 「当前节点已连接，但 android 工具还没有注册」/ nodes failed: system.run
 
 当飞书或 Operator 提示 **「当前节点已连接，但 android 工具(android_contacts_list、android_sms_list 等)还没有注册」** 或 **`[tools] nodes failed: system.run requires a companion app or node host`** 时，表示**当前连上的节点/网关没有加载本项目的 Gateway 扩展**，所以看不到 `android_*` 工具。
@@ -297,7 +310,7 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
    - 在 Operator/飞书侧把 **Gateway 连接地址** 配置为 **`ws://<手机 IP>:18789`**，确保连的是这台 Gateway，而不是别的 node。
 
 2. **Gateway 未加载扩展**  
-   - 确认 `~/.clawdbot/moltbot.json` 中有 **`gateway.extensions`**，且包含 `~/gateway-extension/dist/index.js`（或实际扩展路径）。  
+   - 确认 `~/.clawdbot/clawdbot.json` 中有 **`gateway.extensions`**，且包含 `~/gateway-extension/dist/index.js`（或实际扩展路径）。  
    - **若 `gateway-extension` 目录下没有 `dist` 目录**：扩展尚未构建，Gateway 无法加载。在 `gateway-extension` 目录执行 `npm install && npm run build` 生成 `dist/`；在手机上则执行 `./scripts/install-gateway.sh`（会同步并构建扩展）。  
    - 启动 Gateway 后，终端日志里应有 **`[Android Bridge] Extension activated`**；若无，说明扩展未加载，检查配置与 `~/gateway-extension/dist/index.js` 是否存在。
 

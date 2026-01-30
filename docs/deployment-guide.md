@@ -140,7 +140,7 @@ pnpm link --global
 # 初始化配置
 moltbot gateway init
 
-# 配置文件位置: ~/.clawdbot/moltbot.json
+# 配置文件位置: ~/.clawdbot/clawdbot.json
 ```
 
 ### 4.4 安装 Gateway 扩展
@@ -212,7 +212,7 @@ cd android
 
 ### 6.1 配置 Gateway 扩展
 
-编辑 `~/.clawdbot/moltbot.json`：
+编辑 `~/.clawdbot/clawdbot.json`：
 
 ```json
 {
@@ -388,7 +388,7 @@ curl -v http://localhost:18800/api/v1/health
 #### Q: Gateway 工具未加载
 ```bash
 # 检查扩展配置
-cat ~/.clawdbot/moltbot.json
+cat ~/.clawdbot/clawdbot.json
 
 # 检查扩展文件是否存在
 ls -la ~/gateway-extension/dist/
@@ -411,7 +411,7 @@ logcat | grep -E "(moltbot|bridge)"
 
 ```bash
 # 备份当前配置
-cp ~/.clawdbot/moltbot.json ~/.clawdbot/moltbot.json.bak
+cp ~/.clawdbot/clawdbot.json ~/.clawdbot/clawdbot.json.bak
 
 # 重新初始化
 moltbot gateway init --force
@@ -438,7 +438,7 @@ moltbot gateway init --force
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
-| Gateway 配置 | `~/.clawdbot/moltbot.json` | 主配置文件 |
+| Gateway 配置 | `~/.clawdbot/clawdbot.json` | 主配置文件 |
 | Gateway 扩展 | `~/gateway-extension/` | 扩展代码 |
 | 启动脚本 | `~/start-gateway.sh` | 启动脚本 |
 | 日志文件 | `~/gateway.log` | 运行日志 |

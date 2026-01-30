@@ -121,9 +121,9 @@ echo ""
 echo "初始化 Gateway 配置..."
 mkdir -p ~/.clawdbot
 
-# 创建配置文件（含扩展路径，Gateway 启动时会加载 ~/gateway-extension，注册通讯录/短信等工具）
-if [ ! -f ~/.clawdbot/moltbot.json ]; then
-    cat > ~/.clawdbot/moltbot.json << 'EOF'
+# 创建/更新配置文件（clawdbot 使用 ~/.clawdbot/clawdbot.json；含扩展路径，Gateway 启动时会加载 ~/gateway-extension，注册通讯录/短信等工具）
+if [ ! -f ~/.clawdbot/clawdbot.json ]; then
+    cat > ~/.clawdbot/clawdbot.json << 'EOF'
 {
   "gateway": {
     "port": 18789,
@@ -139,9 +139,12 @@ if [ ! -f ~/.clawdbot/moltbot.json ]; then
   }
 }
 EOF
-    echo "已创建配置文件: ~/.clawdbot/moltbot.json（含 gateway 扩展路径）"
+    echo "已创建配置文件: ~/.clawdbot/clawdbot.json（含 gateway 扩展路径）"
 else
-    echo "配置文件已存在（若 clawdbot 无法使用通讯录等工具，请检查 gateway.extensions 是否包含 ~/gateway-extension/dist/index.js）"
+    echo "配置文件 ~/.clawdbot/clawdbot.json 已存在"
+    if ! grep -q 'gateway-extension/dist/index.js' ~/.clawdbot/clawdbot.json 2>/dev/null; then
+        echo -e "${YELLOW}请在该文件中添加 gateway.extensions，例如: \"extensions\": [ \"~/gateway-extension/dist/index.js\" ]，否则 android 工具不会注册。${NC}"
+    fi
 fi
 
 echo ""

@@ -22,7 +22,7 @@
 |-----|------|------|
 | Gateway 服务（WebSocket、工具注册） | ✅ | 不依赖安装时脚本 |
 | Gateway 扩展加载（如 Android Bridge） | ✅ | 不依赖安装时脚本 |
-| Gateway 配置 `~/.clawdbot/moltbot.json` | ✅ | 不依赖安装时脚本 |
+| Gateway 配置 `~/.clawdbot/clawdbot.json` | ✅ | 不依赖安装时脚本 |
 | Gateway Canvas / Control UI | ⚠️ | 若依赖 **@napi-rs/canvas** 或 **sharp** 做渲染/图片处理，会受影响 |
 
 ---
