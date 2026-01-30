@@ -67,7 +67,7 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：按 PATH → npm 全局 prefix/bin 查找（Termux 等环境可能不支持 npm bin -g，改用 npm config get prefix）
+# 启动 Gateway：PATH → npm 全局 prefix/bin → ~/moltbot 源码目录（从源码安装时）
 MOLTBOT_CMD=""
 if command -v moltbot &> /dev/null; then
     MOLTBOT_CMD="moltbot"
@@ -77,10 +77,19 @@ elif npm list -g moltbot --depth=0 &>/dev/null; then
         MOLTBOT_CMD="$NPM_PREFIX/bin/moltbot"
     fi
 fi
+# Termux 等环境下 npm install -g 可能未正确安装 bin，尝试从 ~/moltbot 源码运行
+if [ -z "$MOLTBOT_CMD" ] && [ -d "$HOME/moltbot" ]; then
+    if [ -x "$HOME/moltbot/node_modules/.bin/moltbot" ]; then
+        MOLTBOT_CMD="$HOME/moltbot/node_modules/.bin/moltbot"
+    elif [ -f "$HOME/moltbot/dist/cli.js" ]; then
+        MOLTBOT_CMD="node $HOME/moltbot/dist/cli.js"
+    fi
+fi
 if [ -n "$MOLTBOT_CMD" ]; then
-    exec "$MOLTBOT_CMD" gateway --port "${GATEWAY_PORT}"
+    exec $MOLTBOT_CMD gateway --port "${GATEWAY_PORT}"
 else
     echo -e "${RED}错误: moltbot 未安装${NC}"
     echo "请先运行 ./scripts/install-gateway.sh"
+    echo -e "${YELLOW}若曾选择「从 npm 安装」仍无法启动，请重新运行并选择「从源码安装」。${NC}"
     exit 1
 fi
