@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Moltbot Bridge</string>
+    <string name="notification_channel_name">Bridge Service</string>
+    <string name="notification_channel_description">Bridge Service 运行状态通知</string>
+    <string name="notification_title">Bridge Service</string>
+    <string name="notification_content">服务运行中 - 端口 18800</string>
+    <string name="action_stop">停止服务</string>
+</resources>

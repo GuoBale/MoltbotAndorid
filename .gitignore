@@ -1,0 +1,22 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+*.apk
+
+# Node / gateway-extension
+node_modules/
+gateway-extension/node_modules/
+gateway-extension/dist/
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+
+# Local / env
+.env
+*.local
+
+# Nested repo (has own .git)
+moltbot/
