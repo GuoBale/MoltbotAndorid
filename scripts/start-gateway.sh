@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 启动 moltbot Gateway
+# 启动 Gateway（调用已安装的 clawd）
 #
 
 # 颜色定义
@@ -14,7 +14,7 @@ BRIDGE_PORT="${ANDROID_BRIDGE_PORT:-18800}"
 GATEWAY_PORT="${GATEWAY_PORT:-18789}"
 
 echo "========================================"
-echo "  启动 moltbot Gateway"
+echo "  启动 Gateway (clawd)"
 echo "========================================"
 echo ""
 
@@ -67,44 +67,21 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：仅使用官方 moltbot（不用 moltbot-cn）。按 PATH → npm 全局 prefix/bin → ~/moltbot 源码 查找
-MOLTBOT_CMD=""
-if command -v moltbot &> /dev/null; then
-    MOLTBOT_CMD="moltbot"
-elif npm list -g moltbot --depth=0 &>/dev/null; then
+# 启动 Gateway：调用已安装的 clawd。按 PATH → npm 全局 prefix/bin 查找
+CLAWD_CMD=""
+if command -v clawd &> /dev/null; then
+    CLAWD_CMD="clawd"
+elif [ -n "$(npm config get prefix 2>/dev/null)" ]; then
     NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/moltbot" ]; then
-        MOLTBOT_CMD="$NPM_PREFIX/bin/moltbot"
+    if [ -x "$NPM_PREFIX/bin/clawd" ]; then
+        CLAWD_CMD="$NPM_PREFIX/bin/clawd"
     fi
 fi
-# Termux 等环境下 npm install -g 可能未正确安装 bin，尝试从 ~/moltbot 源码运行
-if [ -z "$MOLTBOT_CMD" ] && [ -d "$HOME/moltbot" ]; then
-    if [ -x "$HOME/moltbot/node_modules/.bin/moltbot" ]; then
-        MOLTBOT_CMD="$HOME/moltbot/node_modules/.bin/moltbot"
-    elif [ -f "$HOME/moltbot/dist/cli.js" ]; then
-        MOLTBOT_CMD="node $HOME/moltbot/dist/cli.js"
-    fi
-fi
-# 已全局安装但 bin 中无可执行文件且 npx 在 Termux 上会报错时：用 node 直接运行全局包内的 CLI 入口
-if [ -z "$MOLTBOT_CMD" ] && npm list -g moltbot --depth=0 &>/dev/null; then
-    MOLTBOT_PKG="$(npm list -g moltbot --parseable 2>/dev/null | tail -1)"
-    if [ -n "$MOLTBOT_PKG" ]; then
-        if [ -f "$MOLTBOT_PKG/dist/cli.js" ]; then
-            MOLTBOT_CMD="node $MOLTBOT_PKG/dist/cli.js"
-        elif [ -f "$MOLTBOT_PKG/bin/cli.js" ]; then
-            MOLTBOT_CMD="node $MOLTBOT_PKG/bin/cli.js"
-        fi
-    fi
-fi
-# 最后尝试 npx（在部分环境会报 could not determine executable，故放在 node 直连之后）
-if [ -z "$MOLTBOT_CMD" ] && npm list -g moltbot --depth=0 &>/dev/null; then
-    MOLTBOT_CMD="npx moltbot"
-fi
-if [ -n "$MOLTBOT_CMD" ]; then
-    exec $MOLTBOT_CMD gateway --port "${GATEWAY_PORT}"
+if [ -n "$CLAWD_CMD" ]; then
+    exec $CLAWD_CMD gateway --port "${GATEWAY_PORT}"
 else
-    echo -e "${RED}错误: moltbot 未安装${NC}"
-    echo "请先运行 ./scripts/install-gateway.sh"
-    echo -e "${YELLOW}若已用 npm 安装但找不到命令，可尝试: node \$(npm list -g moltbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
+    echo -e "${RED}错误: clawd 未找到${NC}"
+    echo "请确保已安装 clawd（如: npm install -g clawd），并将 npm 全局 bin 加入 PATH"
+    echo "或执行: export PATH=\"\$(npm config get prefix)/bin:\$PATH\""
     exit 1
 fi
