@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# moltbot Gateway 安装脚本
+# clawdbot Gateway 安装脚本
 # 可从项目根目录或任意目录运行；若在克隆的仓库内运行，会自动使用本项目的 gateway-extension
 #
 
@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo "========================================"
-echo "  安装 moltbot Gateway"
+echo "  安装 clawdbot Gateway"
 echo "========================================"
 echo ""
 
@@ -53,35 +53,35 @@ echo ""
 if [[ $REPLY == "2" ]]; then
     echo "从源码安装..."
     
-    MOLTBOT_REPO="https://github.com/moltbot/moltbot.git"
+    CLAWDBOT_REPO="${CLAWDBOT_REPO:-https://github.com/moltbot/clawdbot.git}"
     NEED_CLONE=""
-    if [ -d ~/moltbot/.git ]; then
-        if (cd ~/moltbot && git rev-parse --is-inside-work-tree &>/dev/null); then
-            echo "moltbot 目录已是 git 仓库，更新..."
-            if ! (cd ~/moltbot && git pull); then
+    if [ -d ~/clawdbot/.git ]; then
+        if (cd ~/clawdbot && git rev-parse --is-inside-work-tree &>/dev/null); then
+            echo "clawdbot 目录已是 git 仓库，更新..."
+            if ! (cd ~/clawdbot && git pull); then
                 echo -e "${YELLOW}git pull 失败（可能是网络问题），将重新克隆...${NC}"
                 NEED_CLONE=1
             fi
         else
-            echo "moltbot 目录存在但不是有效 git 仓库，将重新克隆..."
+            echo "clawdbot 目录存在但不是有效 git 仓库，将重新克隆..."
             NEED_CLONE=1
         fi
     else
-        [ -d ~/moltbot ] && echo "moltbot 目录存在但不是 git 仓库，将重新克隆..."
+        [ -d ~/clawdbot ] && echo "clawdbot 目录存在但不是 git 仓库，将重新克隆..."
         NEED_CLONE=1
     fi
     
     if [ -n "$NEED_CLONE" ]; then
-        [ -d ~/moltbot ] && rm -rf ~/moltbot
-        echo "克隆 moltbot 仓库..."
-        if ! git clone "$MOLTBOT_REPO" ~/moltbot; then
+        [ -d ~/clawdbot ] && rm -rf ~/clawdbot
+        echo "克隆 clawdbot 仓库..."
+        if ! git clone "$CLAWDBOT_REPO" ~/clawdbot; then
             echo -e "${RED}克隆失败。请检查:${NC}"
             echo "  1. 网络是否可访问 github.com（若不可用可尝试代理或 VPN）"
             echo "  2. 终端中执行: git config --global http.proxy http://你的代理地址:端口"
             exit 1
         fi
     fi
-    cd ~/moltbot
+    cd ~/clawdbot
     
     # 安装依赖
     echo "安装依赖..."
@@ -96,8 +96,8 @@ if [[ $REPLY == "2" ]]; then
     fi
 else
     echo "从 npm 安装..."
-    npm install -g moltbot
-    # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会通过 npx 自动找到
+    npm install -g clawdbot
+    # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会自动查找
 fi
 
 echo ""
@@ -136,9 +136,9 @@ echo "========================================"
 echo -e "${GREEN}安装完成!${NC}"
 echo "========================================"
 echo ""
-echo "moltbot 版本: $(moltbot --version 2>/dev/null || echo '未知')"
+echo "clawdbot 版本: $(clawdbot --version 2>/dev/null || echo '未知')"
 echo ""
 echo "下一步:"
 echo "  1. 确保 Bridge Service 已在 Android 上运行"
-echo "  2. 运行 './start-gateway.sh' 启动 Gateway"
+echo "  2. 运行 './scripts/start-gateway.sh' 启动 Gateway"
 echo ""

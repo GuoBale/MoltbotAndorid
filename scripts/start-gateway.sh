@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 启动 Gateway（调用已安装的 clawd）
+# 启动 clawdbot Gateway
 #
 
 # 颜色定义
@@ -14,7 +14,7 @@ BRIDGE_PORT="${ANDROID_BRIDGE_PORT:-18800}"
 GATEWAY_PORT="${GATEWAY_PORT:-18789}"
 
 echo "========================================"
-echo "  启动 Gateway (clawd)"
+echo "  启动 clawdbot Gateway"
 echo "========================================"
 echo ""
 
@@ -67,21 +67,44 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：调用已安装的 clawd。按 PATH → npm 全局 prefix/bin 查找
-CLAWD_CMD=""
-if command -v clawd &> /dev/null; then
-    CLAWD_CMD="clawd"
-elif [ -n "$(npm config get prefix 2>/dev/null)" ]; then
+# 启动 Gateway：按 PATH → npm 全局 prefix/bin → ~/clawdbot 源码 查找 clawdbot
+CLAWDBOT_CMD=""
+if command -v clawdbot &> /dev/null; then
+    CLAWDBOT_CMD="clawdbot"
+elif npm list -g clawdbot --depth=0 &>/dev/null; then
     NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-    if [ -x "$NPM_PREFIX/bin/clawd" ]; then
-        CLAWD_CMD="$NPM_PREFIX/bin/clawd"
+    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
+        CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
     fi
 fi
-if [ -n "$CLAWD_CMD" ]; then
-    exec $CLAWD_CMD gateway --port "${GATEWAY_PORT}"
+# 从源码运行
+if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
+    if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
+        CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
+    elif [ -f "$HOME/clawdbot/dist/cli.js" ]; then
+        CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
+    fi
+fi
+# 已全局安装但 bin 中无可执行文件时：用 node 直接运行全局包内的 CLI 入口
+if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
+    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)"
+    if [ -n "$CLAWDBOT_PKG" ]; then
+        if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
+        elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
+        fi
+    fi
+fi
+# 最后尝试 npx
+if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
+    CLAWDBOT_CMD="npx clawdbot"
+fi
+if [ -n "$CLAWDBOT_CMD" ]; then
+    exec $CLAWDBOT_CMD gateway --port "${GATEWAY_PORT}"
 else
-    echo -e "${RED}错误: clawd 未找到${NC}"
-    echo "请确保已安装 clawd（如: npm install -g clawd），并将 npm 全局 bin 加入 PATH"
-    echo "或执行: export PATH=\"\$(npm config get prefix)/bin:\$PATH\""
+    echo -e "${RED}错误: clawdbot 未安装${NC}"
+    echo "请先安装 clawdbot（npm install -g clawdbot）或运行 ./scripts/install-gateway.sh"
+    echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
     exit 1
 fi
