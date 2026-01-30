@@ -113,6 +113,54 @@ WebSocket: ws://<device-ip>:18789
 | TTS | 文本转语音 |
 | Intent | 分享、拨号、打开 URL |
 
+## 如何通过桥接让 clawdbot 读取手机通讯录（无需改 clawdbot 源码）
+
+**不需要修改 clawdbot 的代码。** 流程是：本项目的 **Gateway 扩展**（gateway-extension）在 Gateway 启动时被加载，向 clawdbot 注册「通讯录」「短信」等工具；Operator 连上 Gateway 后就能看到并调用这些工具，扩展再通过 HTTP 访问手机上的 Bridge 应用拿到数据。
+
+**数据流：**
+
+```
+你 / AI 对话 → clawdbot Operator → WebSocket → Gateway（clawdbot gateway）
+                                                    ↓ 加载扩展
+                                              gateway-extension
+                                                    ↓ 注册工具
+                                              android_contacts_list / android_contacts_get 等
+                                                    ↓ HTTP
+                                              Bridge Service（手机 App :18800）
+                                                    ↓ Android API
+                                              手机通讯录 / 短信 等
+```
+
+**你需要做的：**
+
+1. **安装并配置好扩展**  
+   运行 `./scripts/install-gateway.sh`（会同步 gateway-extension 到 `~/gateway-extension` 并构建）。  
+   配置文件 `~/.clawdbot/moltbot.json` 里需包含 **`gateway.extensions`**，指向扩展入口，例如：
+   ```json
+   {
+     "gateway": {
+       "port": 18789,
+       "extensions": ["~/gateway-extension/dist/index.js"]
+     },
+     "android": {
+       "bridge": { "host": "127.0.0.1", "port": 18800 }
+     }
+   }
+   ```
+   首次安装时脚本会写入上述内容；若你之前已创建过配置，请自行补上 `extensions` 和（可选）`android.bridge`。
+
+2. **手机端**  
+   - 打开 **Bridge Service** 应用并启动服务，授予**通讯录**（及短信等）权限。  
+   - 在 Termux 执行 `./scripts/start-gateway.sh` 启动 Gateway（会加载上述扩展）。
+
+3. **连接 Operator**  
+   从运行 clawdbot Operator 的客户端连接到手机的 Gateway：`ws://<手机 IP>:18789`。连接成功后，Operator 会看到扩展注册的工具（如 `android_contacts_list`、`android_contacts_get`），即可在对话中「查通讯录」「读取联系人」等。
+
+4. **若读不到通讯录**  
+   - 确认 Bridge 应用已授予通讯录权限。  
+   - 确认 `~/.clawdbot/moltbot.json` 中有 `gateway.extensions` 且路径正确（`~/gateway-extension/dist/index.js` 存在）。  
+   - 确认 Gateway 启动日志中有类似 `[Android Bridge] Extension activated`，表示扩展已加载。
+
 ## 如何通过 clawdbot 访问手机短信
 
 1. **确保 Gateway 已启动**  
@@ -164,6 +212,27 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 - `deploy.sh` - 一键部署
 
 ## 已知限制与故障排除
+
+### Android 上「Gateway service install not supported on android」
+
+在 Termux（Android）上，Clawdbot 会报 **Gateway service install not supported on android**，表示其「安装为系统服务」能力不支持 Android。
+
+**正确做法：**
+
+- **只通过本项目的脚本启动 Gateway**，不要用 `clawdbot gateway install`、`clawdbot onboard --install-daemon` 等「安装服务」类命令：
+  ```bash
+  ./scripts/start-gateway.sh
+  ```
+  该脚本会以前台方式运行 `clawdbot gateway --port 18789`，不依赖系统服务，在 Android 上可用。
+
+**若出现「gateway already running」或「Port 18789 is already in use」：**
+
+- 说明已有 Gateway 在跑（例如之前用 `./scripts/start-gateway.sh` 启动的），可直接使用，无需再起一个。
+- 若要先停掉再重开：在 Termux 里执行 `clawdbot gateway stop`（若支持），或找到占用端口的进程并结束，例如：
+  ```bash
+  kill 17271   # 将 17271 换成实际 pid
+  ```
+  然后再运行 `./scripts/start-gateway.sh`。
 
 ### Android/Termux 上「从源码安装」失败
 

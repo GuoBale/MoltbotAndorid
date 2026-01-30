@@ -96,8 +96,12 @@ if [[ $REPLY == "2" ]]; then
     fi
 else
     echo "从 npm 安装..."
-    npm install -g clawdbot
-    # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会自动查找
+    if command -v clawdbot &>/dev/null || npm list -g clawdbot --depth=0 &>/dev/null; then
+        echo -e "${GREEN}clawdbot 已安装，跳过 npm 安装${NC}"
+    else
+        npm install -g clawdbot
+        # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会自动查找
+    fi
 fi
 
 echo ""
@@ -117,18 +121,27 @@ echo ""
 echo "初始化 Gateway 配置..."
 mkdir -p ~/.clawdbot
 
-# 创建配置文件
+# 创建配置文件（含扩展路径，Gateway 启动时会加载 ~/gateway-extension，注册通讯录/短信等工具）
 if [ ! -f ~/.clawdbot/moltbot.json ]; then
     cat > ~/.clawdbot/moltbot.json << 'EOF'
 {
   "gateway": {
-    "port": 18789
+    "port": 18789,
+    "extensions": [
+      "~/gateway-extension/dist/index.js"
+    ]
+  },
+  "android": {
+    "bridge": {
+      "host": "127.0.0.1",
+      "port": 18800
+    }
   }
 }
 EOF
-    echo "已创建配置文件: ~/.clawdbot/moltbot.json"
+    echo "已创建配置文件: ~/.clawdbot/moltbot.json（含 gateway 扩展路径）"
 else
-    echo "配置文件已存在"
+    echo "配置文件已存在（若 clawdbot 无法使用通讯录等工具，请检查 gateway.extensions 是否包含 ~/gateway-extension/dist/index.js）"
 fi
 
 echo ""
