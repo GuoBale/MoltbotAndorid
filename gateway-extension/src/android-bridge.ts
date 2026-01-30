@@ -62,6 +62,16 @@ export function deactivate(): void {
  * 注册所有 Android 工具
  */
 function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
+  // 调试：检查 api 对象
+  console.log('[Android Bridge] API object keys:', Object.keys(api || {}).join(', '));
+  console.log('[Android Bridge] api.registerTool type:', typeof api?.registerTool);
+  
+  if (typeof api?.registerTool !== 'function') {
+    console.error('[Android Bridge] ERROR: api.registerTool is not a function!');
+    console.log('[Android Bridge] API object:', JSON.stringify(api, null, 2).substring(0, 500));
+    return;
+  }
+
   // ========== 系统信息工具 ==========
 
   api.registerTool({
@@ -73,10 +83,13 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
       required: [],
     },
     async execute(_id: string, _params: any) {
+      console.log('[Android Bridge] android_device_info called');
       try {
         const result = await bridge.getDeviceInfo();
+        console.log('[Android Bridge] android_device_info success');
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
+        console.error('[Android Bridge] android_device_info error:', error.message);
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
       }
     },
@@ -142,14 +155,17 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
       required: [],
     },
     async execute(_id: string, params: { query?: string; limit?: number; offset?: number }) {
+      console.log('[Android Bridge] android_contacts_list called with params:', JSON.stringify(params));
       try {
         const result = await bridge.getContacts({
           q: params.query,
           limit: params.limit,
           offset: params.offset,
         });
+        console.log('[Android Bridge] android_contacts_list success, contacts count:', result?.contacts?.length);
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
+        console.error('[Android Bridge] android_contacts_list error:', error.message);
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
       }
     },
