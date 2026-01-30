@@ -67,14 +67,14 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：按 PATH → npm 全局 bin 路径 → npx 顺序查找（适配 Termux 下 npx 报错 "could not determine executable" 的情况）
+# 启动 Gateway：按 PATH → npm 全局 prefix/bin 查找（Termux 等环境可能不支持 npm bin -g，改用 npm config get prefix）
 MOLTBOT_CMD=""
 if command -v moltbot &> /dev/null; then
     MOLTBOT_CMD="moltbot"
 elif npm list -g moltbot --depth=0 &>/dev/null; then
-    NPM_BIN="$(npm bin -g 2>/dev/null)"
-    if [ -n "$NPM_BIN" ] && [ -x "$NPM_BIN/moltbot" ]; then
-        MOLTBOT_CMD="$NPM_BIN/moltbot"
+    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/moltbot" ]; then
+        MOLTBOT_CMD="$NPM_PREFIX/bin/moltbot"
     fi
 fi
 if [ -n "$MOLTBOT_CMD" ]; then
