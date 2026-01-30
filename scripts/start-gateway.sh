@@ -164,6 +164,11 @@ if [ -n "$ON_ANDROID" ] && command -v npm &>/dev/null; then
     if [ -z "$CLAWDBOT_PKG" ] && [ -d "$HOME/.npm-global/lib/node_modules/clawdbot" ]; then
         CLAWDBOT_PKG="$HOME/.npm-global/lib/node_modules/clawdbot"
     fi
+    # Termux 默认全局目录（node/npm 来自 /data/.../usr/bin 时，npm root -g 多为 $PREFIX/lib/node_modules）
+    if [ -z "$CLAWDBOT_PKG" ]; then
+        TERMUX_PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
+        [ -d "$TERMUX_PREFIX/lib/node_modules/clawdbot" ] && CLAWDBOT_PKG="$TERMUX_PREFIX/lib/node_modules/clawdbot"
+    fi
     if [ -n "$CLAWDBOT_PKG" ] && [ -d "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
@@ -230,13 +235,20 @@ if [ -n "$CLAWDBOT_CMD" ]; then
     esac
 else
     echo -e "${RED}错误: clawdbot 未安装或无法解析入口${NC}"
-    echo "请先运行 ./scripts/install-gateway.sh 安装 clawdbot 与扩展"
+    echo ""
+    echo "当前未检测到 clawdbot 全局包（需存在 dist/cli/run-main.js 或 dist/cli.js）。"
+    echo "请先安装："
+    echo "  ./scripts/install-gateway.sh   # 推荐，会安装 clawdbot 并配置扩展"
+    echo "或："
+    echo "  npm install -g clawdbot"
+    echo ""
     if [ -n "$ON_ANDROID" ]; then
         NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
+        echo "当前 npm 全局目录: ${NPM_ROOT:-（无法获取）}"
         if [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ]; then
-            echo -e "${YELLOW}若已安装，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+            echo -e "${YELLOW}若已安装于此目录，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
         else
-            echo -e "${YELLOW}若已安装可尝试: node \$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+            echo "安装后可用以下命令确认路径: npm root -g && ls \$(npm root -g)/clawdbot/dist/cli/"
         fi
     else
         echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
