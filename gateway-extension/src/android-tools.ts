@@ -282,6 +282,38 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     },
   });
 
+  // ========== 短信工具 ==========
+
+  registerTool(gateway, {
+    name: 'android_sms_list',
+    description: '获取 Android 设备上的短信列表（收件箱/已发送/全部）。需要 Bridge 应用已授予读取短信权限。',
+    parameters: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+          enum: ['inbox', 'sent', 'all'],
+          description: '短信类型: inbox(收件箱), sent(已发送), all(全部)，默认 inbox',
+        },
+        limit: {
+          type: 'number',
+          description: '返回数量限制，默认 50',
+        },
+        address: {
+          type: 'string',
+          description: '按号码筛选，只返回与该号码的往来短信',
+        },
+      },
+    },
+    handler: async (params: {
+      type?: 'inbox' | 'sent' | 'all';
+      limit?: number;
+      address?: string;
+    }) => {
+      return await bridge.getSms(params);
+    },
+  });
+
   // ========== 剪贴板工具 ==========
 
   registerTool(gateway, {

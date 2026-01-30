@@ -181,6 +181,20 @@ export interface Calendar {
   visible: boolean;
 }
 
+// 短信类型
+export interface SmsMessage {
+  id: string;
+  address: string;
+  body: string;
+  date: number;
+  type: 'inbox' | 'sent' | 'all';
+  read: boolean;
+}
+
+export interface SmsListResult {
+  messages: SmsMessage[];
+}
+
 // 健康检查
 export interface HealthStatus {
   status: 'running' | 'stopped';

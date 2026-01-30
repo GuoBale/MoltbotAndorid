@@ -17,6 +17,7 @@ import {
   MediaImage,
   MediaVideo,
   NetworkStatus,
+  SmsListResult,
 } from './types.js';
 
 export interface BridgeConfig {
@@ -217,6 +218,22 @@ export class AndroidBridgeClient {
     allDay?: boolean;
   }): Promise<{ id: string; title: string; created: boolean }> {
     return this.request('POST', '/calendar/events', event);
+  }
+
+  // ========== SMS API ==========
+
+  async getSms(params?: {
+    type?: 'inbox' | 'sent' | 'all';
+    limit?: number;
+    address?: string;
+  }): Promise<SmsListResult> {
+    const query = new URLSearchParams();
+    if (params?.type) query.set('type', params.type);
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.address) query.set('address', params.address);
+
+    const queryString = query.toString();
+    return this.request('GET', `/sms${queryString ? `?${queryString}` : ''}`);
   }
 
   // ========== Clipboard API ==========

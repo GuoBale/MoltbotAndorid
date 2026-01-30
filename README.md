@@ -108,9 +108,34 @@ WebSocket: ws://<device-ip>:18789
 | 应用 | 列表、详情、启动 |
 | 媒体 | 图片、音频、视频列表 |
 | 日历 | 事件列表、创建事件 |
+| **短信** | 收件箱/已发送列表（需 Bridge 授予读取短信权限） |
 | 剪贴板 | 读取、设置 |
 | TTS | 文本转语音 |
 | Intent | 分享、拨号、打开 URL |
+
+## 如何通过 clawdbot 访问手机短信
+
+1. **确保 Gateway 已启动**  
+   手机 Termux 里已运行 `./scripts/start-gateway.sh`，且 Bridge Service 应用已启动并授予**读取短信**权限。
+
+2. **连接 Gateway**  
+   从你的 Operator / AI Agent 或支持 clawdbot Gateway 的客户端，连接到手机上的 Gateway：
+   - WebSocket：`ws://<手机 IP>:18789`  
+   - 手机 IP 可在手机「设置 → WLAN → 当前网络」查看，或 Termux 里执行 `ifconfig` / `ip addr`。
+
+3. **调用短信工具**  
+   连接后，clawdbot 会使用 Gateway 注册的 **`android_sms_list`** 工具访问短信。你可以：
+   - 在对话里直接说「读取短信」「查一下收件箱」「最近和 10086 的短信」等，由 AI 调用该工具；
+   - 或在你自己的 Agent 代码里显式调用工具 `android_sms_list`，参数可选：
+     - `type`：`inbox`（收件箱）/ `sent`（已发送）/ `all`（全部），默认收件箱；
+     - `limit`：返回条数，默认 50；
+     - `address`：按号码筛选，只返回与该号码的往来短信。
+
+4. **权限**  
+   Bridge 应用需在系统设置中开启「读取短信」权限；若未授权，调用会返回权限错误。
+
+5. **更新扩展**  
+   若你之前安装的 gateway-extension 没有短信工具，在项目目录执行 `./scripts/install-gateway.sh` 会同步并重新构建扩展，之后重启 `./scripts/start-gateway.sh` 即可使用 `android_sms_list`。
 
 ## 文档
 
