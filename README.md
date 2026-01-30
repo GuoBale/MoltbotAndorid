@@ -161,6 +161,19 @@ WebSocket: ws://<device-ip>:18789
    - 确认 `~/.clawdbot/moltbot.json` 中有 `gateway.extensions` 且路径正确（`~/gateway-extension/dist/index.js` 存在）。  
    - 确认 Gateway 启动日志中有类似 `[Android Bridge] Extension activated`，表示扩展已加载。
 
+5. **飞书 / 对话 bot 回复「无法访问通讯录」**  
+   若飞书或其它对接的 bot 说「我无法直接访问你手机的通讯录」「运行在 Termux 沙箱、没有通讯录权限」等，多半是 **bot 不知道已通过桥接具备工具**，按“我没有权限”来回答了。  
+   - **确认**：Operator 已连接到本机 Gateway（`ws://<手机 IP>:18789`），且 Gateway 已加载扩展（日志有 `[Android Bridge] Extension activated`）。  
+   - **给 bot 加一段说明**，让它在用户问通讯录、联系人时去**调用工具**而不是直接拒绝。可在飞书/Operator 的「系统提示词」或「角色说明」里加入类似内容：  
+     ```text
+     你已通过 Gateway 连接用户手机，具备以下能力（请优先使用工具，不要回答“无法访问”）：
+     - 读取通讯录：使用 android_contacts_list（可选参数 query、limit、offset）、android_contacts_get（参数 id）获取联系人。
+     - 读取短信：使用 android_sms_list（可选 type=inbox/sent/all、limit、address）。
+     - 其它：设备信息、电池、应用列表、日历、剪贴板、TTS 等见已注册的 android_* 工具。
+     当用户询问“通讯录”“联系人”“短信”时，请直接调用对应工具并基于返回结果回答。
+     ```  
+   这样 bot 会知道「可以通过工具访问通讯录」，不再误报“无法访问”。
+
 ## 如何通过 clawdbot 访问手机短信
 
 1. **确保 Gateway 已启动**  
@@ -212,6 +225,34 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 - `deploy.sh` - 一键部署
 
 ## 已知限制与故障排除
+
+### 「看起来手机还没有连接到 Gateway」/ 飞书提示需先配对手机
+
+当飞书或其它 Operator 提示 **「看起来手机还没有连接到 Gateway」** 或 **「需要先配对手机，确保安装了 Clawdbot 或相关应用」** 时，表示 **Operator 没有成功连上你手机上的 Gateway**，或未发现可用工具。
+
+**按下面顺序检查：**
+
+1. **手机端（Termux）**  
+   - **Bridge Service** 应用已打开并点击「启动服务」。  
+   - 在 Termux 中执行过 `./scripts/start-gateway.sh`，且**没有退出**（Gateway 在前台运行）。  
+   - 若刚启动，看日志里是否有 `[Android Bridge] Extension activated`。
+
+2. **手机 IP 与端口**  
+   - Gateway 监听端口为 **18789**。  
+   - 在手机「设置 → WLAN → 当前网络」查看 IP，或 Termux 执行 `ifconfig` / `ip addr` 查看。  
+   - 运行 Operator 的机器（或服务器）必须能访问 **`ws://<手机 IP>:18789`**（例如手机和该机器在同一 WiFi，或已做端口转发）。
+
+3. **Operator 连接配置**  
+   - 将 Operator（clawdbot/飞书集成等）的 Gateway 地址配置为 **`ws://<手机 IP>:18789`**（把 `<手机 IP>` 换成上一步得到的 IP）。  
+   - 若 Operator 在公网服务器上，手机在家庭 WiFi 内，需在路由器做端口转发或使用内网穿透，使服务器能连到手机的 18789 端口。
+
+4. **「在手机上安装 Clawdbot 或相关应用」的含义**  
+   - 手机**不需要**单独安装名为「Clawdbot」的 App。  
+   - 需要的是：**Bridge Service 应用**（本项目 android 目录构建的 APK）+ 在 **Termux** 里运行 **`./scripts/start-gateway.sh`**（即运行 clawdbot gateway）。  
+   - 配对/连接是指：Operator 成功连上 `ws://<手机 IP>:18789` 并看到扩展注册的 `android_*` 工具。
+
+**关于 `[tools] exec failed: unknown command 'tool'`**  
+   - 该错误一般来自其它环境（如 shell 或其它 CLI），与 Gateway 扩展无关。若只在飞书/Operator 日志里出现，可忽略或检查 Operator 侧是否有误触发的 `tool` 命令。
 
 ### Android 上「Gateway service install not supported on android」
 

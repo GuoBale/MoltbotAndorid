@@ -110,7 +110,7 @@ if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
 fi
 # 已全局安装但 bin 中无可执行文件时：用 node 直接运行全局包内的 CLI 入口
 if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)"
+    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
     if [ -n "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
@@ -124,7 +124,17 @@ if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     CLAWDBOT_CMD="npx clawdbot"
 fi
 if [ -n "$CLAWDBOT_CMD" ]; then
-    exec $CLAWDBOT_CMD gateway --port "${GATEWAY_PORT}"
+    # 确保 gateway --port 正确传入：多词命令用 eval 避免路径含空格/换行导致落入 Node REPL
+    echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway --port ${GATEWAY_PORT}${NC}"
+    case "$CLAWDBOT_CMD" in
+        "node "*)
+            CLAWDBOT_NODE_PATH="${CLAWDBOT_CMD#node }"
+            exec node "$CLAWDBOT_NODE_PATH" gateway --port "${GATEWAY_PORT}"
+            ;;
+        *)
+            exec $CLAWDBOT_CMD gateway --port "${GATEWAY_PORT}"
+            ;;
+    esac
 else
     echo -e "${RED}错误: clawdbot 未安装${NC}"
     echo "请先安装 clawdbot（npm install -g clawdbot）或运行 ./scripts/install-gateway.sh"
