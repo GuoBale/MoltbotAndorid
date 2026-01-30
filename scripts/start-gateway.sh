@@ -222,7 +222,8 @@ if [ -z "$CLAWDBOT_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g clawdbot --dept
     CLAWDBOT_CMD="npx clawdbot"
 fi
 if [ -n "$CLAWDBOT_CMD" ]; then
-    # 使用 gateway run 在前台运行（仅 gateway 可能走 service 逻辑并静默退出）；--verbose 便于看到日志
+    # Android 上禁用「路由优先」，避免 gateway 被 route 到 service/install 逻辑并静默退出；使用 gateway run --verbose 在前台运行
+    [ -n "$ON_ANDROID" ] && export CLAWDBOT_DISABLE_ROUTE_FIRST=1
     echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway run --port ${GATEWAY_PORT} --verbose${NC}"
     case "$CLAWDBOT_CMD" in
         "node "*)

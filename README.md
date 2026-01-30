@@ -326,7 +326,8 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 
 修改后保存，再运行 `./scripts/start-gateway.sh`。
 
-若 Gateway **仍无任何输出、退出码 0 即退出**，请确认使用 **`gateway run`** 在前台运行（不要只写 `gateway`）。clawdbot 文档要求用 `gateway run` 或 `gateway` 的前台别名；脚本已改为执行 **`gateway run --port 18789 --verbose`**。手动启动可试：`node .../run-main.js gateway run --port 18789 --verbose`。
+若 Gateway **仍无任何输出、退出码 0 即退出**，请确认使用 **`gateway run`** 在前台运行（不要只写 `gateway`）。clawdbot 文档要求用 `gateway run` 或 `gateway` 的前台别名；脚本已改为执行 **`gateway run --port 18789 --verbose`**。  
+若仍静默退出，多半是 CLI 的「路由优先」把 `gateway` 转到了 service/install 逻辑（在 Android 上会静默退出）。在 Termux 上启动前设置 **`CLAWDBOT_DISABLE_ROUTE_FIRST=1`** 可禁用该路由，让主程序处理 `gateway run`。脚本在 Android 下已自动设置该变量；手动启动可试：`CLAWDBOT_DISABLE_ROUTE_FIRST=1 node .../run-main.js gateway run --port 18789 --verbose`。
 
 ### clawdbot 报错 `JSON5: invalid character` / Failed to read config
 
