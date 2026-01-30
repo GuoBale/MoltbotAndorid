@@ -3,8 +3,9 @@
  */
 
 // API 响应类型
+// Bridge API 返回格式: { type: "...Success" | "...Error", data: {...}, meta: {...} }
 export interface ApiResponse<T = unknown> {
-  ok: boolean;
+  type: string;
   data?: T;
   error?: ApiError;
   meta?: {

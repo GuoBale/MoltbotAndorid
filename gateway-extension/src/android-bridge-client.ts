@@ -61,7 +61,12 @@ export class AndroidBridgeClient {
 
       const result = (await response.json()) as ApiResponse<T>;
 
-      if (!result.ok) {
+      // Bridge API 使用 type 字段判断成功/失败
+      // 成功: "com.moltbot.bridge.protocol.ApiResponse.Success"
+      // 失败: "com.moltbot.bridge.protocol.ApiResponse.Error"
+      const isSuccess = result.type?.includes('Success') ?? false;
+      
+      if (!isSuccess) {
         const error = result.error;
         throw new BridgeError(
           error?.code ?? 'UNKNOWN_ERROR',
