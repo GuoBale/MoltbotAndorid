@@ -50,20 +50,34 @@ if [[ $REPLY == "2" ]]; then
     echo "从源码安装..."
     
     MOLTBOT_REPO="https://github.com/moltbot/moltbot.git"
-    # 仅当 ~/moltbot 已是 git 仓库时才 pull，否则克隆（覆盖空目录或非 git 目录）
+    NEED_CLONE=""
     if [ -d ~/moltbot/.git ]; then
-        echo "moltbot 目录已是 git 仓库，更新..."
-        cd ~/moltbot
-        git pull
-    else
-        if [ -d ~/moltbot ]; then
-            echo "moltbot 目录存在但不是 git 仓库，将重新克隆..."
-            rm -rf ~/moltbot
+        if (cd ~/moltbot && git rev-parse --is-inside-work-tree &>/dev/null); then
+            echo "moltbot 目录已是 git 仓库，更新..."
+            if ! (cd ~/moltbot && git pull); then
+                echo -e "${YELLOW}git pull 失败（可能是网络问题），将重新克隆...${NC}"
+                NEED_CLONE=1
+            fi
+        else
+            echo "moltbot 目录存在但不是有效 git 仓库，将重新克隆..."
+            NEED_CLONE=1
         fi
-        echo "克隆 moltbot 仓库..."
-        git clone "$MOLTBOT_REPO" ~/moltbot
-        cd ~/moltbot
+    else
+        [ -d ~/moltbot ] && echo "moltbot 目录存在但不是 git 仓库，将重新克隆..."
+        NEED_CLONE=1
     fi
+    
+    if [ -n "$NEED_CLONE" ]; then
+        [ -d ~/moltbot ] && rm -rf ~/moltbot
+        echo "克隆 moltbot 仓库..."
+        if ! git clone "$MOLTBOT_REPO" ~/moltbot; then
+            echo -e "${RED}克隆失败。请检查:${NC}"
+            echo "  1. 网络是否可访问 github.com（若不可用可尝试代理或 VPN）"
+            echo "  2. 终端中执行: git config --global http.proxy http://你的代理地址:端口"
+            exit 1
+        fi
+    fi
+    cd ~/moltbot
     
     # 安装依赖
     echo "安装依赖..."
@@ -79,6 +93,7 @@ if [[ $REPLY == "2" ]]; then
 else
     echo "从 npm 安装..."
     npm install -g moltbot
+    # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会通过 npx 自动找到
 fi
 
 echo ""

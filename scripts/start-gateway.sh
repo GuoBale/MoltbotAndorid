@@ -67,11 +67,13 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway
+# 启动 Gateway（优先用 PATH 中的 moltbot，否则用 npx 调用全局安装的包，适配 Termux 等 PATH 未包含 npm 全局 bin 的环境）
 if command -v moltbot &> /dev/null; then
     exec moltbot gateway --port "${GATEWAY_PORT}"
+elif npm list -g moltbot --depth=0 2>/dev/null | grep -q moltbot; then
+    exec npx moltbot gateway --port "${GATEWAY_PORT}"
 else
     echo -e "${RED}错误: moltbot 未安装${NC}"
-    echo "请先运行 ./install-gateway.sh"
+    echo "请先运行 ./scripts/install-gateway.sh"
     exit 1
 fi
