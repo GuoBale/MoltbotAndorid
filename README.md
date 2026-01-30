@@ -277,14 +277,10 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
   ```
   该脚本会以前台方式运行 `clawdbot gateway --port 18789`，不依赖系统服务，在 Android 上可用。
 
-**若出现「gateway already running」或「Port 18789 is already in use」：**
+**若出现「gateway already running (pid …); lock timeout」或「Port 18789 is already in use」：**
 
-- 说明已有 Gateway 在跑（例如之前用 `./scripts/start-gateway.sh` 启动的），可直接使用，无需再起一个。
-- 若要先停掉再重开：在 Termux 里执行 `clawdbot gateway stop`（若支持），或找到占用端口的进程并结束，例如：
-  ```bash
-  kill 17271   # 将 17271 换成实际 pid
-  ```
-  然后再运行 `./scripts/start-gateway.sh`。
+- 说明端口已被占用或存在陈旧锁文件。**直接再次运行** `./scripts/start-gateway.sh` 即可：脚本会自动结束占用端口的进程、清除 `~/.clawdbot` 下的 gateway 锁/pid 文件后重新启动。
+- 若仍失败，可手动结束进程（将 PID 换成实际值）：`kill -9 <PID>`，再运行 `./scripts/start-gateway.sh`。
 
 **若日志出现 `[tools] exec failed: Gateway service install not supported on android`：**
 

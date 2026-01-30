@@ -61,7 +61,11 @@ fi
 export ANDROID_BRIDGE_HOST="${BRIDGE_HOST}"
 export ANDROID_BRIDGE_PORT="${BRIDGE_PORT}"
 
-# 检查 Gateway 端口是否被占用，占用则结束该进程（lsof 优先，无则试 fuser，再试 ss）
+# 检测是否在 Android/Termux（端口与锁清理、启动方式会用到）
+ON_ANDROID="${ON_ANDROID:-}"
+[ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
+
+# 检查 Gateway 端口是否被占用，占用则结束该进程（lsof → fuser → ss → Android 下 /proc 回退）
 PORT_PID=""
 if command -v lsof &>/dev/null; then
     PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
@@ -70,10 +74,32 @@ if [ -z "$PORT_PID" ] && command -v fuser &>/dev/null; then
     PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
 fi
 if [ -z "$PORT_PID" ] && command -v ss &>/dev/null; then
-    # ss -tlnp 输出中匹配 :PORT，取 pid= 后的数字（Termux 常带 ss）；仅保留数字避免 ss 的 Permission denied 被当 pid
     PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | head -1)
 fi
-# 仅当 pid 为纯数字时才结束进程，避免 "Permission denied" 等被误当 pid
+# Android/Termux 上 lsof 常不可用、ss -p 可能 Permission denied，用 /proc/net/tcp 回退取占用端口的 PID
+if [ -z "$PORT_PID" ] && [ -n "$ON_ANDROID" ] && [ -r /proc/net/tcp ]; then
+    PORT_HEX=$(printf '%04X' "${GATEWAY_PORT}")
+    for f in /proc/net/tcp /proc/net/tcp6; do
+        [ ! -r "$f" ] && continue
+        INODE=$(awk -v port="${PORT_HEX}" 'NR>1 && tolower($2) ~ ":" tolower(port) {print $12; exit}' "$f" 2>/dev/null)
+        [ -z "$INODE" ] && continue
+        for p in /proc/[0-9]*; do
+            [ -d "$p/fd" ] || continue
+            pid="${p#/proc/}"
+            case "$pid" in [0-9]*) ;; *) continue ;; esac
+            for fd in "$p"/fd/*; do
+                [ -L "$fd" ] || continue
+                link=$(readlink "$fd" 2>/dev/null)
+                [ -z "$link" ] && continue
+                if [ "$link" = "socket:[$INODE]" ]; then
+                    PORT_PID="$pid"
+                    break 3
+                fi
+            done
+        done
+    done
+fi
+# 仅当 pid 为纯数字时才结束进程
 case "$PORT_PID" in
     ''|*[!0-9]*) PORT_PID="" ;;
 esac
@@ -88,10 +114,28 @@ if [ -n "$PORT_PID" ]; then
     fi
     [ -z "$PORT_PID" ] && command -v fuser &>/dev/null && PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
     [ -z "$PORT_PID" ] && command -v ss &>/dev/null && PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | head -1)
+    if [ -z "$PORT_PID" ] && [ -n "$ON_ANDROID" ] && [ -r /proc/net/tcp ]; then
+        PORT_HEX=$(printf '%04X' "${GATEWAY_PORT}")
+        for f in /proc/net/tcp /proc/net/tcp6; do
+            [ ! -r "$f" ] && continue
+            INODE=$(awk -v port="${PORT_HEX}" 'NR>1 && tolower($2) ~ ":" tolower(port) {print $12; exit}' "$f" 2>/dev/null)
+            [ -z "$INODE" ] && continue
+            for p in /proc/[0-9]*; do [ -d "$p/fd" ] || continue; pid="${p#/proc/}"
+                case "$pid" in [0-9]*) ;; *) continue ;; esac
+                for fd in "$p"/fd/*; do [ -L "$fd" ] || continue; link=$(readlink "$fd" 2>/dev/null); [ "$link" = "socket:[$INODE]" ] && PORT_PID="$pid" && break 3; done
+            done
+        done
+    fi
     case "$PORT_PID" in ''|*[!0-9]*) PORT_PID="" ;; esac
     [ -n "$PORT_PID" ] && kill -9 $PORT_PID 2>/dev/null || true
     sleep 1
 fi
+# 清除 clawdbot gateway 锁/pid 文件，避免 "gateway already running (pid ...); lock timeout"
+CLAWDBOT_DIR="${CLAWDBOT_CONFIG_DIR:-$HOME/.clawdbot}"
+for lock in "$CLAWDBOT_DIR"/gateway.pid "$CLAWDBOT_DIR"/gateway.lock "$CLAWDBOT_DIR"/.gateway.lock "$CLAWDBOT_DIR"/run/gateway.pid; do
+    [ -e "$lock" ] && rm -f "$lock" && echo -e "${YELLOW}已移除陈旧锁文件: $lock${NC}"
+done
+[ -d "$CLAWDBOT_DIR/run" ] && rmdir "$CLAWDBOT_DIR/run" 2>/dev/null || true
 
 echo "启动 Gateway (端口: ${GATEWAY_PORT})..."
 echo ""
@@ -122,20 +166,28 @@ if [ -n "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
         fi
     fi
 fi
-if [ -z "$CLAWDBOT_CMD" ] && command -v clawdbot &> /dev/null; then
-    CLAWDBOT_CMD="clawdbot"
-elif [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
-        CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
+# 非 Android 才用 clawdbot 命令；Android 上该命令会触发 "Gateway service install not supported on android"
+if [ -z "$ON_ANDROID" ]; then
+    if [ -z "$CLAWDBOT_CMD" ] && command -v clawdbot &> /dev/null; then
+        CLAWDBOT_CMD="clawdbot"
+    elif [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
+        NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+        if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
+            CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
+        fi
     fi
 fi
-# 从源码运行
+# 从源码运行（Android 上源码也用 node 启动，避免走 service 逻辑）
 if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
-    if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
-        CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
-    elif [ -f "$HOME/clawdbot/dist/cli.js" ]; then
-        CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
+    if [ -n "$ON_ANDROID" ]; then
+        [ -f "$HOME/clawdbot/dist/cli/run-main.js" ] && CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli/run-main.js"
+        [ -z "$CLAWDBOT_CMD" ] && [ -f "$HOME/clawdbot/dist/cli.js" ] && CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
+    else
+        if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
+            CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
+        elif [ -f "$HOME/clawdbot/dist/cli.js" ]; then
+            CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
+        fi
     fi
 fi
 # 已全局安装但尚未选定：用 node 直接运行全局包内的 CLI 入口
@@ -152,8 +204,8 @@ if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
         fi
     fi
 fi
-# 最后尝试 npx
-if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
+# 最后尝试 npx（仅非 Android；Android 上 npx clawdbot 也会触发 service install 错误）
+if [ -z "$CLAWDBOT_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     CLAWDBOT_CMD="npx clawdbot"
 fi
 if [ -n "$CLAWDBOT_CMD" ]; then
@@ -169,8 +221,12 @@ if [ -n "$CLAWDBOT_CMD" ]; then
             ;;
     esac
 else
-    echo -e "${RED}错误: clawdbot 未安装${NC}"
-    echo "请先安装 clawdbot（npm install -g clawdbot）或运行 ./scripts/install-gateway.sh"
-    echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
+    echo -e "${RED}错误: clawdbot 未安装或无法解析入口${NC}"
+    echo "请先运行 ./scripts/install-gateway.sh 安装 clawdbot 与扩展"
+    if [ -n "$ON_ANDROID" ]; then
+        echo -e "${YELLOW}Android 上必须通过 node 直接运行 CLI，若已安装可尝试: node \$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+    else
+        echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
+    fi
     exit 1
 fi
