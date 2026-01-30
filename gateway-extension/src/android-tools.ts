@@ -448,7 +448,7 @@ interface ToolDefinition {
 
 function registerTool(gateway: any, tool: ToolDefinition): void {
   // 包装 handler 以处理错误
-  const wrappedHandler = async (params: any) => {
+  const wrappedExecute = async (params: any) => {
     try {
       return await tool.handler(params);
     } catch (error) {
@@ -464,21 +464,22 @@ function registerTool(gateway: any, tool: ToolDefinition): void {
     }
   };
 
+  // clawdbot Gateway 工具定义格式
+  const toolDef = {
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.parameters,
+    // clawdbot 期望 execute 而不是 handler
+    execute: wrappedExecute,
+    // 兼容旧版 API
+    handler: wrappedExecute,
+  };
+
   // 根据 Gateway 的 API 注册工具
   if (typeof gateway.registerTool === 'function') {
-    gateway.registerTool({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.parameters,
-      handler: wrappedHandler,
-    });
+    gateway.registerTool(toolDef);
   } else if (typeof gateway.tools?.register === 'function') {
-    gateway.tools.register({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.parameters,
-      handler: wrappedHandler,
-    });
+    gateway.tools.register(toolDef);
   } else {
     console.warn(`[Android Bridge] Unable to register tool: ${tool.name}`);
   }
