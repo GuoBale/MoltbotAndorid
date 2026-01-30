@@ -23,6 +23,9 @@ echo ""
 # 若在项目仓库内且存在 gateway-extension，则同步到 ~/gateway-extension 以便安装
 if [ -d "$PROJECT_DIR/gateway-extension" ] && [ -f "$PROJECT_DIR/gateway-extension/package.json" ]; then
     echo "检测到项目内 gateway-extension，同步到 ~/gateway-extension ..."
+    # 先清理目标目录的 dist 和 node_modules，避免旧文件残留
+    [ -d ~/gateway-extension/dist ] && rm -rf ~/gateway-extension/dist
+    [ -d ~/gateway-extension/node_modules ] && rm -rf ~/gateway-extension/node_modules
     mkdir -p ~/gateway-extension
     cp -r "$PROJECT_DIR"/gateway-extension/* ~/gateway-extension/
     echo ""
