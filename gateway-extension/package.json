@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp clawdbot.plugin.json dist/",
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },

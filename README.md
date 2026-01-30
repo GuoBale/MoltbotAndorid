@@ -302,6 +302,15 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 1. **自动修复**：在 Termux 执行 **`clawdbot doctor --fix`**，会移除不认识的键（如 `gateway.extensions`、`android`）。
 2. **手动改为新结构**：扩展改为通过 **`plugins.load.paths`** 配置，Bridge 地址通过环境变量配置（见上文「用最小配置覆盖」示例）。保存后重新运行 `./scripts/start-gateway.sh`。
 
+### clawdbot 报错 plugin manifest not found: .../gateway-extension/dist/clawdbot.plugin.json
+
+若启动时提示 **`Invalid config ... plugin manifest not found: .../gateway-extension/dist/clawdbot.plugin.json`**，说明当前 clawdbot 版本要求每个插件提供清单文件 **`clawdbot.plugin.json`**，而你的 `~/gateway-extension/dist/` 下还没有该文件。
+
+**处理方式：**
+
+1. **重新安装/构建扩展**（推荐）：在项目目录执行 **`./scripts/install-gateway.sh`**，会同步最新的 gateway-extension（含 `clawdbot.plugin.json`）到 `~/gateway-extension` 并执行 `npm run build`，构建会把清单复制到 `dist/`。
+2. **仅本地已更新代码时**：在 `gateway-extension` 目录执行 **`npm run build`**（会生成 `dist/clawdbot.plugin.json`），再把整个 `gateway-extension` 拷到手机 `~/gateway-extension` 后重启 Gateway。
+
 ### clawdbot 报错 `JSON5: invalid character` / Failed to read config
 
 若启动时出现 **`Failed to read config at .../clawdbot.json SyntaxError: JSON5: invalid character '\"' at 98:5`**（行号/列号可能不同），说明 **`~/.clawdbot/clawdbot.json` 有语法错误**，多为多写/少写引号、逗号或某行有非法字符。

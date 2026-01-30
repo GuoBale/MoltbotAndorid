@@ -1,0 +1,11 @@
+{
+  "id": "android-bridge",
+  "name": "Android Bridge",
+  "description": "Gateway extension for Android Bridge Service (contacts, SMS, device, etc.)",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
