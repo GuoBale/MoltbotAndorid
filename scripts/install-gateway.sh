@@ -122,13 +122,15 @@ echo "初始化 Gateway 配置..."
 mkdir -p ~/.clawdbot
 
 # 创建/更新配置文件（clawdbot 使用 ~/.clawdbot/clawdbot.json；扩展通过 plugins.load.paths 加载，Bridge 地址通过环境变量 ANDROID_BRIDGE_HOST / ANDROID_BRIDGE_PORT 配置）
+# 使用绝对路径避免 JSON 中 ~ 不被解析导致插件加载失败
+GATEWAY_EXT_PATH="${HOME}/gateway-extension/dist/android-bridge.js"
 if [ ! -f ~/.clawdbot/clawdbot.json ]; then
-    cat > ~/.clawdbot/clawdbot.json << 'EOF'
+    cat > ~/.clawdbot/clawdbot.json << EOF
 {
   "plugins": {
     "load": {
       "paths": [
-        "~/gateway-extension/dist/android-bridge.js"
+        "$GATEWAY_EXT_PATH"
       ]
     }
   },
@@ -137,11 +139,12 @@ if [ ! -f ~/.clawdbot/clawdbot.json ]; then
   }
 }
 EOF
-    echo "已创建配置文件: ~/.clawdbot/clawdbot.json（含 plugins.load.paths 扩展路径）"
+    echo "已创建配置文件: ~/.clawdbot/clawdbot.json（含 plugins.load.paths 扩展路径，使用绝对路径）"
 else
     echo "配置文件 ~/.clawdbot/clawdbot.json 已存在"
     if ! grep -q 'gateway-extension/dist/android-bridge.js' ~/.clawdbot/clawdbot.json 2>/dev/null; then
-        echo -e "${YELLOW}请在 plugins.load.paths 中添加 \"~/gateway-extension/dist/android-bridge.js\"，否则 android 工具不会注册。${NC}"
+        echo -e "${YELLOW}请在 plugins.load.paths 中添加扩展入口的绝对路径，例如: \"$GATEWAY_EXT_PATH\"，否则 android 工具不会注册。${NC}"
+        echo -e "${YELLOW}注意：JSON 中不要用 ~，请写 \$HOME 的实际路径（如 /data/data/com.termux/files/home/...）。${NC}"
     fi
 fi
 

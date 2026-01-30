@@ -313,6 +313,19 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 
 若曾出现 **「plugin id mismatch (manifest uses android-bridge, entry hints index)」**，请将配置中的扩展路径改为 **`~/gateway-extension/dist/android-bridge.js`**（与 manifest 的 id 一致），并重新运行 `./scripts/install-gateway.sh` 或本地 `npm run build` 后同步到手机。
 
+### Gateway 启动后立即退出（无报错、退出码 0）/ plugins.load.paths 需用绝对路径
+
+若运行 `./scripts/start-gateway.sh` 或 `node ... run-main.js gateway --port 18789` 后**没有任何输出、进程立即退出且退出码为 0**，多半是 **`plugins.load.paths` 配置有问题**：
+
+1. **不要放目录**：`paths` 里只能是**插件入口文件**（如 `.../gateway-extension/dist/android-bridge.js`），不能是用户主目录等目录路径（如 `/data/.../home`），否则会导致加载异常并静默退出。
+2. **用绝对路径、不要用 ~**：在 JSON 里 **`~` 通常不会被解析为 $HOME**，clawdbot 会按字面路径查找，导致找不到插件。在 Termux 上请写成绝对路径，例如：
+   ```json
+   "paths": ["/data/data/com.termux/files/home/gateway-extension/dist/android-bridge.js"]
+   ```
+   （把 `.../home` 换成你实际的 $HOME，在 Termux 里执行 `echo $HOME` 可查看。）
+
+修改后保存，再运行 `./scripts/start-gateway.sh`。
+
 ### clawdbot 报错 `JSON5: invalid character` / Failed to read config
 
 若启动时出现 **`Failed to read config at .../clawdbot.json SyntaxError: JSON5: invalid character '\"' at 98:5`**（行号/列号可能不同），说明 **`~/.clawdbot/clawdbot.json` 有语法错误**，多为多写/少写引号、逗号或某行有非法字符。
