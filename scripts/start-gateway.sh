@@ -61,6 +61,29 @@ fi
 export ANDROID_BRIDGE_HOST="${BRIDGE_HOST}"
 export ANDROID_BRIDGE_PORT="${BRIDGE_PORT}"
 
+# 检查 Gateway 端口是否被占用，占用则结束该进程
+PORT_PID=""
+if command -v lsof &>/dev/null; then
+    PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
+elif command -v fuser &>/dev/null; then
+    # fuser 输出形如 "18789/tcp: 12345"，取冒号后的 pid
+    PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
+fi
+if [ -n "$PORT_PID" ]; then
+    echo -e "${YELLOW}端口 ${GATEWAY_PORT} 已被占用 (pid: ${PORT_PID})，正在结束该进程...${NC}"
+    kill $PORT_PID 2>/dev/null || true
+    sleep 2
+    # 若仍占用则强制结束
+    PORT_PID=""
+    if command -v lsof &>/dev/null; then
+        PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
+    elif command -v fuser &>/dev/null; then
+        PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
+    fi
+    [ -n "$PORT_PID" ] && kill -9 $PORT_PID 2>/dev/null || true
+    sleep 1
+fi
+
 echo "启动 Gateway (端口: ${GATEWAY_PORT})..."
 echo ""
 echo "按 Ctrl+C 停止"
