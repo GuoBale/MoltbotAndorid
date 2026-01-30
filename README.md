@@ -205,10 +205,13 @@ source ~/.bashrc
 配置好 PATH 后可直接运行 `moltbot gateway --port 18789`；或使用 `./scripts/start-gateway.sh`（脚本会从 npm 前缀、npx 等自动查找 moltbot）。
 
 **若 PATH 已包含 npm 的 bin 仍提示 command not found**  
-部分环境下 `npm install -g moltbot` 不会在 prefix/bin 里创建 `moltbot` 可执行文件。可改用 **npx** 调用：
+部分环境下 `npm install -g moltbot` 不会在 prefix/bin 里创建 `moltbot` 可执行文件。可改用 **npx** 或 **node + 全局包路径**：
 - 安装/配置：`npx moltbot onboard --install-daemon`
 - 启动 Gateway：`npx moltbot gateway --port 18789`  
-或直接运行 `./scripts/start-gateway.sh`，脚本在找不到可执行文件时会自动尝试 `npx moltbot`。
+或直接运行 `./scripts/start-gateway.sh`，脚本会依次尝试：PATH → prefix/bin → ~/moltbot 源码 → **node 运行全局包内 dist/cli.js**（Termux 上 npx 常报 “could not determine executable” 时用此方式）→ npx。
+
+**若 npx 报错 “could not determine executable to run”**  
+在 Termux 上常见。脚本已增加：当检测到全局已安装 moltbot 时，用 `node <全局包路径>/dist/cli.js` 直接启动，不依赖 npx。请先 `git pull` 更新脚本后再运行 `./scripts/start-gateway.sh`。
 
 ### 其他
 

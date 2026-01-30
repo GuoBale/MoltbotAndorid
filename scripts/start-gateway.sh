@@ -85,7 +85,18 @@ if [ -z "$MOLTBOT_CMD" ] && [ -d "$HOME/moltbot" ]; then
         MOLTBOT_CMD="node $HOME/moltbot/dist/cli.js"
     fi
 fi
-# 已全局安装但 bin 中无 moltbot 可执行文件时（部分环境），用 npx 启动
+# 已全局安装但 bin 中无可执行文件且 npx 在 Termux 上会报错时：用 node 直接运行全局包内的 CLI 入口
+if [ -z "$MOLTBOT_CMD" ] && npm list -g moltbot --depth=0 &>/dev/null; then
+    MOLTBOT_PKG="$(npm list -g moltbot --parseable 2>/dev/null | tail -1)"
+    if [ -n "$MOLTBOT_PKG" ]; then
+        if [ -f "$MOLTBOT_PKG/dist/cli.js" ]; then
+            MOLTBOT_CMD="node $MOLTBOT_PKG/dist/cli.js"
+        elif [ -f "$MOLTBOT_PKG/bin/cli.js" ]; then
+            MOLTBOT_CMD="node $MOLTBOT_PKG/bin/cli.js"
+        fi
+    fi
+fi
+# 最后尝试 npx（在部分环境会报 could not determine executable，故放在 node 直连之后）
 if [ -z "$MOLTBOT_CMD" ] && npm list -g moltbot --depth=0 &>/dev/null; then
     MOLTBOT_CMD="npx moltbot"
 fi
@@ -94,6 +105,6 @@ if [ -n "$MOLTBOT_CMD" ]; then
 else
     echo -e "${RED}错误: moltbot 未安装${NC}"
     echo "请先运行 ./scripts/install-gateway.sh"
-    echo -e "${YELLOW}若已用 npm 安装但找不到命令，可尝试: npx moltbot gateway --port ${GATEWAY_PORT}${NC}"
+    echo -e "${YELLOW}若已用 npm 安装但找不到命令，可尝试: node \$(npm list -g moltbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
     exit 1
 fi
