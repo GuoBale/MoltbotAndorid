@@ -13,6 +13,11 @@ BRIDGE_HOST="${ANDROID_BRIDGE_HOST:-127.0.0.1}"
 BRIDGE_PORT="${ANDROID_BRIDGE_PORT:-18800}"
 GATEWAY_PORT="${GATEWAY_PORT:-18789}"
 
+# Termux/Android：确保 PATH 含 npm/node（常见为 ~/.npm-global/bin 或系统 bin）
+if [ -d "/data/data/com.termux/files/usr" ] || [ -n "$TERMUX_VERSION" ]; then
+    export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:/data/data/com.termux/files/usr/bin:$PATH"
+fi
+
 echo "========================================"
 echo "  启动 clawdbot Gateway"
 echo "========================================"
@@ -63,7 +68,7 @@ export ANDROID_BRIDGE_PORT="${BRIDGE_PORT}"
 
 # 检测是否在 Android/Termux（端口与锁清理、启动方式会用到）
 ON_ANDROID="${ON_ANDROID:-}"
-[ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
+[ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] || [ -d "/data/data/com.termux/files/usr" ] && ON_ANDROID=1
 
 # 检查 Gateway 端口是否被占用，占用则结束该进程（lsof → fuser → ss → Android 下 /proc 回退）
 PORT_PID=""
@@ -154,6 +159,10 @@ if [ -n "$ON_ANDROID" ] && command -v npm &>/dev/null; then
     if [ -z "$CLAWDBOT_PKG" ]; then
         NPM_ROOT_G="$(npm root -g 2>/dev/null | tr -d '\n\r')"
         [ -n "$NPM_ROOT_G" ] && [ -d "$NPM_ROOT_G/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT_G/clawdbot"
+    fi
+    # 常见 Termux 自定义全局目录回退（npm config prefix = ~/.npm-global 时）
+    if [ -z "$CLAWDBOT_PKG" ] && [ -d "$HOME/.npm-global/lib/node_modules/clawdbot" ]; then
+        CLAWDBOT_PKG="$HOME/.npm-global/lib/node_modules/clawdbot"
     fi
     if [ -n "$CLAWDBOT_PKG" ] && [ -d "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
