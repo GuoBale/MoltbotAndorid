@@ -154,6 +154,62 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 2. **在 PC 上运行 Gateway，Android 只跑 Bridge**  
    在 Linux/macOS/Windows 上从源码或 npm 安装并启动 moltbot Gateway，Android 设备只安装并运行 Bridge Service；在 PC 上把 Gateway 的桥接地址配置为 Android 设备的 IP（需保证网络互通）。
 
+### 使用官方 moltbot，不要使用 moltbot-cn
+
+本项目仅使用 **官方 npm 包 `moltbot`** 作为 Gateway，不使用 `moltbot-cn`。若全局 bin 里只有 `moltbot-cn` 没有 `moltbot`，需要单独安装官方包：
+
+```bash
+npm install -g moltbot@latest --ignore-scripts
+export PATH="$(npm config get prefix)/bin:$PATH"
+```
+
+之后用 `moltbot` 命令（不是 `moltbot-cn`）或 `./scripts/start-gateway.sh` 启动 Gateway。
+
+### 手机 Termux 上「moltbot: command not found」
+
+用 `npm install -g moltbot` 安装成功后，在终端直接输入 `moltbot` 仍提示 **command not found**，多半是 npm 全局 bin 目录不在 PATH 里，或当前环境的 npm 前缀不是 `~/.npm-global`。
+
+**第一步：确认安装位置**
+
+在项目目录执行：
+
+```bash
+npm config get prefix
+ls "$(npm config get prefix)/bin"
+```
+
+- 若输出里有 `moltbot`，记下第一行的路径（即 npm 前缀），下面用「做法二」把该路径的 `bin` 加入 PATH。  
+- 若没有 `moltbot`，说明全局安装未生成可执行文件（部分环境或 npm 包行为导致），可改用：  
+  `npx moltbot onboard --install-daemon` 和 `npx moltbot gateway --port 18789`（或直接使用 `./scripts/start-gateway.sh`，脚本会尝试多种方式查找 moltbot）。
+
+**做法一：当前会话临时生效（用实际前缀）**
+
+```bash
+export PATH="$(npm config get prefix)/bin:$PATH"
+moltbot onboard --install-daemon   # 注意是 daemon 不是 deamon
+```
+
+**做法二：长期生效（推荐）**
+
+把 **当前环境** npm 前缀的 bin 加入 PATH（避免写死 `~/.npm-global`）：
+
+```bash
+NPM_BIN="$(npm config get prefix)/bin"
+echo "export PATH=\"$NPM_BIN:\$PATH\"" >> ~/.bashrc
+source ~/.bashrc
+```
+
+之后新开终端或执行 `source ~/.bashrc` 后即可直接使用 `moltbot`。
+
+**启动 Gateway**  
+配置好 PATH 后可直接运行 `moltbot gateway --port 18789`；或使用 `./scripts/start-gateway.sh`（脚本会从 npm 前缀、npx 等自动查找 moltbot）。
+
+**若 PATH 已包含 npm 的 bin 仍提示 command not found**  
+部分环境下 `npm install -g moltbot` 不会在 prefix/bin 里创建 `moltbot` 可执行文件。可改用 **npx** 调用：
+- 安装/配置：`npx moltbot onboard --install-daemon`
+- 启动 Gateway：`npx moltbot gateway --port 18789`  
+或直接运行 `./scripts/start-gateway.sh`，脚本在找不到可执行文件时会自动尝试 `npx moltbot`。
+
 ### 其他
 
 - 若 `git pull` 或 `git clone` 无法访问 GitHub，可配置代理或使用能访问 GitHub 的网络后再试。

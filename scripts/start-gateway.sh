@@ -67,7 +67,7 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：PATH → npm 全局 prefix/bin → ~/moltbot 源码目录（从源码安装时）
+# 启动 Gateway：仅使用官方 moltbot（不用 moltbot-cn）。按 PATH → npm 全局 prefix/bin → ~/moltbot 源码 查找
 MOLTBOT_CMD=""
 if command -v moltbot &> /dev/null; then
     MOLTBOT_CMD="moltbot"
@@ -85,11 +85,15 @@ if [ -z "$MOLTBOT_CMD" ] && [ -d "$HOME/moltbot" ]; then
         MOLTBOT_CMD="node $HOME/moltbot/dist/cli.js"
     fi
 fi
+# 已全局安装但 bin 中无 moltbot 可执行文件时（部分环境），用 npx 启动
+if [ -z "$MOLTBOT_CMD" ] && npm list -g moltbot --depth=0 &>/dev/null; then
+    MOLTBOT_CMD="npx moltbot"
+fi
 if [ -n "$MOLTBOT_CMD" ]; then
     exec $MOLTBOT_CMD gateway --port "${GATEWAY_PORT}"
 else
     echo -e "${RED}错误: moltbot 未安装${NC}"
     echo "请先运行 ./scripts/install-gateway.sh"
-    echo -e "${YELLOW}若曾选择「从 npm 安装」仍无法启动，请重新运行并选择「从源码安装」。${NC}"
+    echo -e "${YELLOW}若已用 npm 安装但找不到命令，可尝试: npx moltbot gateway --port ${GATEWAY_PORT}${NC}"
     exit 1
 fi
