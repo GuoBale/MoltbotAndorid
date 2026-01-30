@@ -49,14 +49,19 @@ echo ""
 if [[ $REPLY == "2" ]]; then
     echo "从源码安装..."
     
-    # 克隆仓库
-    if [ -d ~/moltbot ]; then
-        echo "moltbot 目录已存在，更新..."
+    MOLTBOT_REPO="https://github.com/moltbot/moltbot.git"
+    # 仅当 ~/moltbot 已是 git 仓库时才 pull，否则克隆（覆盖空目录或非 git 目录）
+    if [ -d ~/moltbot/.git ]; then
+        echo "moltbot 目录已是 git 仓库，更新..."
         cd ~/moltbot
         git pull
     else
+        if [ -d ~/moltbot ]; then
+            echo "moltbot 目录存在但不是 git 仓库，将重新克隆..."
+            rm -rf ~/moltbot
+        fi
         echo "克隆 moltbot 仓库..."
-        git clone https://github.com/moltbot/moltbot.git ~/moltbot
+        git clone "$MOLTBOT_REPO" ~/moltbot
         cd ~/moltbot
     fi
     

@@ -71,6 +71,20 @@ cd /path/to/MoltbotAndorid   # 或 cd ~/storage/downloads/MoltbotAndorid
 ./scripts/install-gateway.sh
 ```
 
+**在 Termux 中更新推送的代码**
+
+远程仓库有新提交时，在 Termux 里拉取并（如有需要）重新安装扩展：
+
+```bash
+cd ~/MoltbotAndorid   # 或你克隆到的目录
+git pull
+
+# 若 gateway-extension 或脚本有改动，建议重新安装扩展
+./scripts/install-gateway.sh
+```
+
+若只更新了文档或 Android 应用代码，拉取后无需再运行 `install-gateway.sh`；若改动了 `gateway-extension/` 或依赖，再执行一次 `install-gateway.sh` 即可。
+
 ### 3. 启动服务
 
 1. 打开 Bridge Service 应用，授予权限，点击"启动服务"
