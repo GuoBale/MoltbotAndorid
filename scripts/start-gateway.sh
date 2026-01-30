@@ -148,19 +148,15 @@ CLAWDBOT_CMD=""
 ON_ANDROID="${ON_ANDROID:-}"
 [ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
 
-if [ -n "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    # Android/Termux：优先用 node 直接运行全局包 cli，避免 "clawdbot" 命令触发 "Gateway service install not supported on android"
+# Android/Termux：必须用 node 直接运行 CLI，不依赖 npm list 成功；优先 run-main.js（当前包结构）
+if [ -n "$ON_ANDROID" ] && command -v npm &>/dev/null; then
     CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
-    if [ -z "$CLAWDBOT_PKG" ] && command -v npm &>/dev/null; then
-        NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
-        [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT/clawdbot"
-    fi
-    if [ -n "$CLAWDBOT_PKG" ]; then
-        if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
-        elif [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
-            # clawdbot 包入口可能为 dist/cli/run-main.js（见 stack trace）
+    [ -z "$CLAWDBOT_PKG" ] && [ -d "$(npm root -g 2>/dev/null)/clawdbot" ] && CLAWDBOT_PKG="$(npm root -g 2>/dev/null | tr -d '\n\r')/clawdbot"
+    if [ -n "$CLAWDBOT_PKG" ] && [ -d "$CLAWDBOT_PKG" ]; then
+        if [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
+        elif [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
         elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
         fi
@@ -224,7 +220,12 @@ else
     echo -e "${RED}错误: clawdbot 未安装或无法解析入口${NC}"
     echo "请先运行 ./scripts/install-gateway.sh 安装 clawdbot 与扩展"
     if [ -n "$ON_ANDROID" ]; then
-        echo -e "${YELLOW}Android 上必须通过 node 直接运行 CLI，若已安装可尝试: node \$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+        NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
+        if [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ]; then
+            echo -e "${YELLOW}若已安装，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+        else
+            echo -e "${YELLOW}若已安装可尝试: node \$(npm list -g clawdbot --parseable 2>/dev/null | tail -1)/dist/cli/run-main.js gateway --port ${GATEWAY_PORT}${NC}"
+        fi
     else
         echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway --port ${GATEWAY_PORT}${NC}"
     fi
