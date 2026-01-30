@@ -70,9 +70,13 @@ if [ -z "$PORT_PID" ] && command -v fuser &>/dev/null; then
     PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
 fi
 if [ -z "$PORT_PID" ] && command -v ss &>/dev/null; then
-    # ss -tlnp 输出中匹配 :PORT，取 pid= 后的数字（Termux 常带 ss）
-    PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
+    # ss -tlnp 输出中匹配 :PORT，取 pid= 后的数字（Termux 常带 ss）；仅保留数字避免 ss 的 Permission denied 被当 pid
+    PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | head -1)
 fi
+# 仅当 pid 为纯数字时才结束进程，避免 "Permission denied" 等被误当 pid
+case "$PORT_PID" in
+    ''|*[!0-9]*) PORT_PID="" ;;
+esac
 if [ -n "$PORT_PID" ]; then
     echo -e "${YELLOW}端口 ${GATEWAY_PORT} 已被占用 (pid: ${PORT_PID})，正在结束该进程...${NC}"
     kill $PORT_PID 2>/dev/null || true
@@ -83,7 +87,8 @@ if [ -n "$PORT_PID" ]; then
         PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
     fi
     [ -z "$PORT_PID" ] && command -v fuser &>/dev/null && PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
-    [ -z "$PORT_PID" ] && command -v ss &>/dev/null && PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
+    [ -z "$PORT_PID" ] && command -v ss &>/dev/null && PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | head -1)
+    case "$PORT_PID" in ''|*[!0-9]*) PORT_PID="" ;; esac
     [ -n "$PORT_PID" ] && kill -9 $PORT_PID 2>/dev/null || true
     sleep 1
 fi
@@ -109,6 +114,9 @@ if [ -n "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     if [ -n "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
+        elif [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
+            # clawdbot 包入口可能为 dist/cli/run-main.js（见 stack trace）
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
         elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
         fi
@@ -133,9 +141,12 @@ fi
 # 已全局安装但尚未选定：用 node 直接运行全局包内的 CLI 入口
 if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
+    [ -z "$CLAWDBOT_PKG" ] && command -v npm &>/dev/null && NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')" && [ -d "$NPM_ROOT/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT/clawdbot"
     if [ -n "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
+        elif [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
+            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
         elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
         fi
