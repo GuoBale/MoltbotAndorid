@@ -216,20 +216,16 @@ cd android
 
 ```json
 {
-  "gateway": {
-    "port": 18789,
-    "extensions": [
-      "~/gateway-extension/dist/index.js"
-    ]
-  },
-  "android": {
-    "bridge": {
-      "host": "127.0.0.1",
-      "port": 18800
+  "plugins": {
+    "load": {
+      "paths": ["~/gateway-extension/dist/index.js"]
     }
-  }
+  },
+  "gateway": { "port": 18789 }
 }
 ```
+
+Bridge 地址通过环境变量 `ANDROID_BRIDGE_HOST`（默认 127.0.0.1）、`ANDROID_BRIDGE_PORT`（默认 18800）配置。
 
 ### 6.2 启动 Gateway
 
@@ -237,13 +233,13 @@ cd android
 
 ```bash
 # 前台运行（调试用）
-moltbot gateway
+clawdbot gateway
 
 # 或后台运行
-moltbot gateway &
+clawdbot gateway &
 
 # 使用 nohup 保持运行
-nohup moltbot gateway > gateway.log 2>&1 &
+nohup clawdbot gateway > gateway.log 2>&1 &
 ```
 
 ### 6.3 创建启动脚本

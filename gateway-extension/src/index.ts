@@ -11,15 +11,16 @@ export { AndroidBridgeClient, BridgeConfig };
 
 /**
  * 扩展激活函数
- * 由 moltbot Gateway 在加载扩展时调用
+ * 由 clawdbot Gateway 在加载扩展时调用。
+ * Bridge 地址仅通过环境变量 ANDROID_BRIDGE_HOST / ANDROID_BRIDGE_PORT 配置（clawdbot 不再支持根级 android 配置键）。
  */
-export function activate(gateway: any, config?: BridgeConfig): void {
+export function activate(gateway: any, _config?: BridgeConfig): void {
   console.log('[Android Bridge] Activating extension...');
 
   const bridgeConfig: BridgeConfig = {
-    host: config?.host ?? process.env.ANDROID_BRIDGE_HOST ?? '127.0.0.1',
-    port: config?.port ?? parseInt(process.env.ANDROID_BRIDGE_PORT ?? '18800', 10),
-    timeout: config?.timeout ?? 30000,
+    host: process.env.ANDROID_BRIDGE_HOST ?? '127.0.0.1',
+    port: parseInt(process.env.ANDROID_BRIDGE_PORT ?? '18800', 10),
+    timeout: 30000,
   };
 
   const bridge = new AndroidBridgeClient(bridgeConfig);
