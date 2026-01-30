@@ -218,7 +218,7 @@ cd android
 {
   "plugins": {
     "load": {
-      "paths": ["~/gateway-extension/dist/index.js"]
+      "paths": ["~/gateway-extension/dist/android-bridge.js"]
     }
   },
   "gateway": { "port": 18789 }

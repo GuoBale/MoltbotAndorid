@@ -128,7 +128,7 @@ if [ ! -f ~/.clawdbot/clawdbot.json ]; then
   "plugins": {
     "load": {
       "paths": [
-        "~/gateway-extension/dist/index.js"
+        "~/gateway-extension/dist/android-bridge.js"
       ]
     }
   },
@@ -140,8 +140,8 @@ EOF
     echo "已创建配置文件: ~/.clawdbot/clawdbot.json（含 plugins.load.paths 扩展路径）"
 else
     echo "配置文件 ~/.clawdbot/clawdbot.json 已存在"
-    if ! grep -q 'gateway-extension/dist/index.js' ~/.clawdbot/clawdbot.json 2>/dev/null; then
-        echo -e "${YELLOW}请在 plugins.load.paths 中添加 \"~/gateway-extension/dist/index.js\"，否则 android 工具不会注册。${NC}"
+    if ! grep -q 'gateway-extension/dist/android-bridge.js' ~/.clawdbot/clawdbot.json 2>/dev/null; then
+        echo -e "${YELLOW}请在 plugins.load.paths 中添加 \"~/gateway-extension/dist/android-bridge.js\"，否则 android 工具不会注册。${NC}"
     fi
 fi
 

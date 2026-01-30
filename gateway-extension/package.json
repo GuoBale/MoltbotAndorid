@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Moltbot Gateway extension for Android Bridge Service",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/android-bridge.js",
+  "types": "dist/android-bridge.d.ts",
   "scripts": {
     "build": "tsc && cp clawdbot.plugin.json dist/",
     "watch": "tsc --watch",
