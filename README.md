@@ -251,6 +251,11 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
    - 需要的是：**Bridge Service 应用**（本项目 android 目录构建的 APK）+ 在 **Termux** 里运行 **`./scripts/start-gateway.sh`**（即运行 clawdbot gateway）。  
    - 配对/连接是指：Operator 成功连上 `ws://<手机 IP>:18789` 并看到扩展注册的 `android_*` 工具。
 
+5. **提示「在手机终端运行: clawdbot node run」时**  
+   - 本方案**不用**在手机执行 `clawdbot node run`。  
+   - 请在手机 **Termux** 里执行：**`./scripts/start-gateway.sh`**（会启动 Gateway，监听 18789）。  
+   - 若提示「或者在电脑运行: clawdbot devices pair」，可按 clawdbot 官方流程在电脑上配对；配对完成后确保 Operator 连接的 Gateway 地址为 **`ws://<手机 IP>:18789`**（手机与电脑需网络互通）。
+
 **关于 `[tools] exec failed: unknown command 'tool'`**  
    - 该错误一般来自其它环境（如 shell 或其它 CLI），与 Gateway 扩展无关。若只在飞书/Operator 日志里出现，可忽略或检查 Operator 侧是否有误触发的 `tool` 命令。
 
@@ -274,6 +279,30 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
   kill 17271   # 将 17271 换成实际 pid
   ```
   然后再运行 `./scripts/start-gateway.sh`。
+
+**若日志出现 `[tools] exec failed: Gateway service install not supported on android`：**
+
+- 表示某处（如飞书/Operator）在尝试在手机上执行「安装 Gateway 服务」类命令，而 clawdbot 在 Android 上不支持该操作。
+- **不要在手机 Termux 里执行** `clawdbot gateway install`、`clawdbot node run` 等会触发「安装服务」的命令；**只运行** `./scripts/start-gateway.sh` 启动 Gateway 即可。
+
+### 「当前节点已连接，但 android 工具还没有注册」/ nodes failed: system.run
+
+当飞书或 Operator 提示 **「当前节点已连接，但 android 工具(android_contacts_list、android_sms_list 等)还没有注册」** 或 **`[tools] nodes failed: system.run requires a companion app or node host`** 时，表示**当前连上的节点/网关没有加载本项目的 Gateway 扩展**，所以看不到 `android_*` 工具。
+
+**可能原因与处理：**
+
+1. **配对的是「node」而不是带扩展的 Gateway**  
+   若通过「设备配对」连上的是 clawdbot 的 **node**（例如手机执行了 `clawdbot node run`），该 node 可能不运行我们的扩展；**android 工具是在「Gateway」上注册的**，需要 Operator 连到**运行了 `./scripts/start-gateway.sh` 的那台 Gateway**（监听 18789）。  
+   - 在手机 Termux 里**只运行** `./scripts/start-gateway.sh`（不要用 `clawdbot node run`）。  
+   - 在 Operator/飞书侧把 **Gateway 连接地址** 配置为 **`ws://<手机 IP>:18789`**，确保连的是这台 Gateway，而不是别的 node。
+
+2. **Gateway 未加载扩展**  
+   - 确认 `~/.clawdbot/moltbot.json` 中有 **`gateway.extensions`**，且包含 `~/gateway-extension/dist/index.js`（或实际扩展路径）。  
+   - **若 `gateway-extension` 目录下没有 `dist` 目录**：扩展尚未构建，Gateway 无法加载。在 `gateway-extension` 目录执行 `npm install && npm run build` 生成 `dist/`；在手机上则执行 `./scripts/install-gateway.sh`（会同步并构建扩展）。  
+   - 启动 Gateway 后，终端日志里应有 **`[Android Bridge] Extension activated`**；若无，说明扩展未加载，检查配置与 `~/gateway-extension/dist/index.js` 是否存在。
+
+3. **工具正在后台注册**  
+   若刚连上或刚启动 Gateway，可等待几秒再试；若仍无 `android_*` 工具，按上面 1、2 检查连接对象与扩展配置。
 
 ### Android/Termux 上「从源码安装」失败
 

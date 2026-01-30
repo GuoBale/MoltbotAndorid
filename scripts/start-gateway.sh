@@ -61,13 +61,17 @@ fi
 export ANDROID_BRIDGE_HOST="${BRIDGE_HOST}"
 export ANDROID_BRIDGE_PORT="${BRIDGE_PORT}"
 
-# 检查 Gateway 端口是否被占用，占用则结束该进程
+# 检查 Gateway 端口是否被占用，占用则结束该进程（lsof 优先，无则试 fuser，再试 ss）
 PORT_PID=""
 if command -v lsof &>/dev/null; then
     PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
-elif command -v fuser &>/dev/null; then
-    # fuser 输出形如 "18789/tcp: 12345"，取冒号后的 pid
+fi
+if [ -z "$PORT_PID" ] && command -v fuser &>/dev/null; then
     PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
+fi
+if [ -z "$PORT_PID" ] && command -v ss &>/dev/null; then
+    # ss -tlnp 输出中匹配 :PORT，取 pid= 后的数字（Termux 常带 ss）
+    PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
 fi
 if [ -n "$PORT_PID" ]; then
     echo -e "${YELLOW}端口 ${GATEWAY_PORT} 已被占用 (pid: ${PORT_PID})，正在结束该进程...${NC}"
@@ -77,9 +81,9 @@ if [ -n "$PORT_PID" ]; then
     PORT_PID=""
     if command -v lsof &>/dev/null; then
         PORT_PID=$(lsof -t -i ":${GATEWAY_PORT}" 2>/dev/null)
-    elif command -v fuser &>/dev/null; then
-        PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
     fi
+    [ -z "$PORT_PID" ] && command -v fuser &>/dev/null && PORT_PID=$(fuser "${GATEWAY_PORT}/tcp" 2>&1 | sed 's/.*: *//' | tr -d ' ')
+    [ -z "$PORT_PID" ] && command -v ss &>/dev/null && PORT_PID=$(ss -tlnp 2>/dev/null | grep ":${GATEWAY_PORT}" | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
     [ -n "$PORT_PID" ] && kill -9 $PORT_PID 2>/dev/null || true
     sleep 1
 fi
@@ -96,8 +100,12 @@ ON_ANDROID="${ON_ANDROID:-}"
 [ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
 
 if [ -n "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    # Android/Termux：优先用 node 直接运行全局包 cli，避免 "clawdbot" 命令在出错时落入 Node REPL
+    # Android/Termux：优先用 node 直接运行全局包 cli，避免 "clawdbot" 命令触发 "Gateway service install not supported on android"
     CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
+    if [ -z "$CLAWDBOT_PKG" ] && command -v npm &>/dev/null; then
+        NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
+        [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT/clawdbot"
+    fi
     if [ -n "$CLAWDBOT_PKG" ]; then
         if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
             CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
