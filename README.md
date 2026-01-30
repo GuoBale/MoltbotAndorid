@@ -138,6 +138,26 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 - `build-bridge-apk.sh` - 构建 APK
 - `deploy.sh` - 一键部署
 
+## 已知限制与故障排除
+
+### Android/Termux 上「从源码安装」失败
+
+在 Termux（Android）上选择 **「从源码安装」** 时，moltbot 的依赖 `@matrix-org/matrix-sdk-crypto-nodejs` 会在 postinstall 中报错 **Unsupported OS: android**，该原生模块不支持 Android。
+
+**建议做法：**
+
+1. **优先使用「从 npm 安装」**  
+   运行 `./scripts/install-gateway.sh` 时选择 **1) 从 npm 安装**。若安装后 `./scripts/start-gateway.sh` 仍提示「moltbot 未安装」，多半是 PATH 未包含 npm 全局 bin，可尝试：
+   - 执行 `source ~/.bashrc` 后再运行 `./scripts/start-gateway.sh`，或
+   - 将脚本更新到最新（`git pull`），脚本会尝试从 `~/.npm-global/bin` 等路径查找 moltbot。
+
+2. **在 PC 上运行 Gateway，Android 只跑 Bridge**  
+   在 Linux/macOS/Windows 上从源码或 npm 安装并启动 moltbot Gateway，Android 设备只安装并运行 Bridge Service；在 PC 上把 Gateway 的桥接地址配置为 Android 设备的 IP（需保证网络互通）。
+
+### 其他
+
+- 若 `git pull` 或 `git clone` 无法访问 GitHub，可配置代理或使用能访问 GitHub 的网络后再试。
+
 ## 权限要求
 
 Bridge Service 需要以下 Android 权限：

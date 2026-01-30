@@ -38,7 +38,11 @@ fi
 echo "检测到 Node.js $(node -v)"
 echo ""
 
-# 安装方式选择
+# 安装方式选择（Android/Termux 上从源码安装会因 @matrix-org/matrix-sdk-crypto-nodejs 不支持而失败）
+if [ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ]; then
+    echo -e "${YELLOW}检测到 Android/Termux：建议选择 1（从 npm 安装），从源码安装可能因依赖不支持 Android 而失败。${NC}"
+    echo ""
+fi
 echo "请选择安装方式:"
 echo "  1) 从 npm 安装 (推荐)"
 echo "  2) 从源码安装"
