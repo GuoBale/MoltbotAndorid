@@ -148,92 +148,55 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：查找 clawdbot。Android/Termux 上优先用 node 直连 cli.js，避免 clawdbot 包装落入 Node REPL
+# 启动 Gateway：查找 clawdbot
 CLAWDBOT_CMD=""
 ON_ANDROID="${ON_ANDROID:-}"
 [ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
 
-# Android/Termux：必须用 node 直接运行 CLI，不依赖 npm list 成功；优先 run-main.js（当前包结构）
-if [ -n "$ON_ANDROID" ] && command -v npm &>/dev/null; then
-    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
-    if [ -z "$CLAWDBOT_PKG" ]; then
-        NPM_ROOT_G="$(npm root -g 2>/dev/null | tr -d '\n\r')"
-        [ -n "$NPM_ROOT_G" ] && [ -d "$NPM_ROOT_G/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT_G/clawdbot"
-    fi
-    # 常见 Termux 自定义全局目录回退（npm config prefix = ~/.npm-global 时）
-    if [ -z "$CLAWDBOT_PKG" ] && [ -d "$HOME/.npm-global/lib/node_modules/clawdbot" ]; then
-        CLAWDBOT_PKG="$HOME/.npm-global/lib/node_modules/clawdbot"
-    fi
-    # Termux 默认全局目录（node/npm 来自 /data/.../usr/bin 时，npm root -g 多为 $PREFIX/lib/node_modules）
-    if [ -z "$CLAWDBOT_PKG" ]; then
-        TERMUX_PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
-        [ -d "$TERMUX_PREFIX/lib/node_modules/clawdbot" ] && CLAWDBOT_PKG="$TERMUX_PREFIX/lib/node_modules/clawdbot"
-    fi
-    if [ -n "$CLAWDBOT_PKG" ] && [ -d "$CLAWDBOT_PKG" ]; then
-        if [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
-        elif [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
-        elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
-        fi
+# 优先检测 clawdbot 命令是否可用（包括 Android）
+# 设置 CLAWDBOT_DISABLE_ROUTE_FIRST=1 后，clawdbot 命令在 Android 上也能正常使用 gateway run
+if command -v clawdbot &> /dev/null; then
+    CLAWDBOT_CMD="clawdbot"
+fi
+
+# 如果 clawdbot 命令不可用，尝试从 npm 全局目录查找
+if [ -z "$CLAWDBOT_CMD" ]; then
+    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
+        CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
     fi
 fi
-# 非 Android 才用 clawdbot 命令；Android 上该命令会触发 "Gateway service install not supported on android"
-if [ -z "$ON_ANDROID" ]; then
-    if [ -z "$CLAWDBOT_CMD" ] && command -v clawdbot &> /dev/null; then
-        CLAWDBOT_CMD="clawdbot"
-    elif [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-        NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-        if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
-            CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
-        fi
+
+# Termux 自定义全局目录
+if [ -z "$CLAWDBOT_CMD" ] && [ -x "$HOME/.npm-global/bin/clawdbot" ]; then
+    CLAWDBOT_CMD="$HOME/.npm-global/bin/clawdbot"
+fi
+
+# Termux 默认全局目录
+if [ -z "$CLAWDBOT_CMD" ]; then
+    TERMUX_PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
+    if [ -x "$TERMUX_PREFIX/bin/clawdbot" ]; then
+        CLAWDBOT_CMD="$TERMUX_PREFIX/bin/clawdbot"
     fi
 fi
-# 从源码运行（Android 上源码也用 node 启动，避免走 service 逻辑）
+
+# 从源码运行
 if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
-    if [ -n "$ON_ANDROID" ]; then
-        [ -f "$HOME/clawdbot/dist/cli/run-main.js" ] && CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli/run-main.js"
-        [ -z "$CLAWDBOT_CMD" ] && [ -f "$HOME/clawdbot/dist/cli.js" ] && CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
-    else
-        if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
-            CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
-        elif [ -f "$HOME/clawdbot/dist/cli.js" ]; then
-            CLAWDBOT_CMD="node $HOME/clawdbot/dist/cli.js"
-        fi
+    if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
+        CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
     fi
 fi
-# 已全局安装但尚未选定：用 node 直接运行全局包内的 CLI 入口
-if [ -z "$CLAWDBOT_CMD" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    CLAWDBOT_PKG="$(npm list -g clawdbot --parseable 2>/dev/null | tail -1 | tr -d '\n\r')"
-    [ -z "$CLAWDBOT_PKG" ] && command -v npm &>/dev/null && NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')" && [ -d "$NPM_ROOT/clawdbot" ] && CLAWDBOT_PKG="$NPM_ROOT/clawdbot"
-    if [ -n "$CLAWDBOT_PKG" ]; then
-        if [ -f "$CLAWDBOT_PKG/dist/cli.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli.js"
-        elif [ -f "$CLAWDBOT_PKG/dist/cli/run-main.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/dist/cli/run-main.js"
-        elif [ -f "$CLAWDBOT_PKG/bin/cli.js" ]; then
-            CLAWDBOT_CMD="node $CLAWDBOT_PKG/bin/cli.js"
-        fi
-    fi
-fi
-# 最后尝试 npx（仅非 Android；Android 上 npx clawdbot 也会触发 service install 错误）
+
+# 最后尝试 npx（仅非 Android）
 if [ -z "$CLAWDBOT_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
     CLAWDBOT_CMD="npx clawdbot"
 fi
+
 if [ -n "$CLAWDBOT_CMD" ]; then
-    # Android 上禁用「路由优先」，避免 gateway 被 route 到 service/install 逻辑并静默退出；使用 gateway run --verbose 在前台运行
+    # Android 上禁用「路由优先」，避免 gateway 被 route 到 service/install 逻辑
     [ -n "$ON_ANDROID" ] && export CLAWDBOT_DISABLE_ROUTE_FIRST=1
     echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway run --port ${GATEWAY_PORT} --verbose${NC}"
-    case "$CLAWDBOT_CMD" in
-        "node "*)
-            CLAWDBOT_NODE_PATH="${CLAWDBOT_CMD#node }"
-            exec node "$CLAWDBOT_NODE_PATH" gateway run --port "${GATEWAY_PORT}" --verbose
-            ;;
-        *)
-            exec $CLAWDBOT_CMD gateway run --port "${GATEWAY_PORT}" --verbose
-            ;;
-    esac
+    exec $CLAWDBOT_CMD gateway run --port "${GATEWAY_PORT}" --verbose
 else
     echo -e "${RED}错误: clawdbot 未安装或无法解析入口${NC}"
     echo ""
