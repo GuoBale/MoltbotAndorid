@@ -447,5 +447,991 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     },
   });
 
+  // ========== 通话记录工具 ==========
+
+  api.registerTool({
+    name: 'android_calllog_list',
+    description: '获取 Android 设备的通话记录',
+    parameters: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+          enum: ['incoming', 'outgoing', 'missed', 'rejected'],
+          description: '通话类型: incoming(来电), outgoing(去电), missed(未接), rejected(拒接)',
+        },
+        limit: { type: 'number', description: '返回数量限制，默认 50' },
+        offset: { type: 'number', description: '偏移量，用于分页' },
+        number: { type: 'string', description: '按号码筛选' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getCallLogs(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_calllog_stats',
+    description: '获取通话记录统计信息（总通话数、总时长、各类型统计）',
+    parameters: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'number', description: '开始时间（毫秒时间戳），默认30天前' },
+        endDate: { type: 'number', description: '结束时间（毫秒时间戳），默认现在' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getCallLogStats(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 位置工具 ==========
+
+  api.registerTool({
+    name: 'android_location_current',
+    description: '获取 Android 设备当前位置（需要位置权限）',
+    parameters: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', description: '位置提供者: gps, network' },
+        timeout: { type: 'number', description: '超时时间（毫秒），默认10000' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getCurrentLocation(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_location_last',
+    description: '获取 Android 设备最后已知位置（比实时获取更快）',
+    parameters: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', description: '位置提供者: gps, network' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getLastKnownLocation(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_geocode',
+    description: '将地址转换为经纬度坐标（地理编码）',
+    parameters: {
+      type: 'object',
+      properties: {
+        address: { type: 'string', description: '要查询的地址' },
+        maxResults: { type: 'number', description: '最大结果数，默认5' },
+      },
+      required: ['address'],
+    },
+    async execute(_id: string, params: { address: string; maxResults?: number }) {
+      try {
+        const result = await bridge.geocode(params.address, params.maxResults);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_reverse_geocode',
+    description: '将经纬度坐标转换为地址（逆地理编码）',
+    parameters: {
+      type: 'object',
+      properties: {
+        latitude: { type: 'number', description: '纬度' },
+        longitude: { type: 'number', description: '经度' },
+        maxResults: { type: 'number', description: '最大结果数，默认5' },
+      },
+      required: ['latitude', 'longitude'],
+    },
+    async execute(_id: string, params: { latitude: number; longitude: number; maxResults?: number }) {
+      try {
+        const result = await bridge.reverseGeocode(params.latitude, params.longitude, params.maxResults);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 音量工具 ==========
+
+  api.registerTool({
+    name: 'android_volume_get',
+    description: '获取 Android 设备所有音量状态（媒体、铃声、闹钟等）',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getVolumes();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_volume_set',
+    description: '设置 Android 设备音量',
+    parameters: {
+      type: 'object',
+      properties: {
+        stream: {
+          type: 'string',
+          enum: ['music', 'ring', 'alarm', 'notification', 'voice_call', 'system'],
+          description: '音量类型',
+        },
+        value: { type: 'number', description: '音量值（绝对值）' },
+        percentage: { type: 'number', description: '音量百分比 0-100' },
+        showUI: { type: 'boolean', description: '是否显示音量 UI' },
+      },
+      required: ['stream'],
+    },
+    async execute(_id: string, params: { stream: string; value?: number; percentage?: number; showUI?: boolean }) {
+      try {
+        const result = await bridge.setVolume(params.stream, params.value, params.percentage, params.showUI);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_volume_adjust',
+    description: '调整 Android 设备音量（增大/减小）',
+    parameters: {
+      type: 'object',
+      properties: {
+        stream: {
+          type: 'string',
+          enum: ['music', 'ring', 'alarm', 'notification', 'voice_call', 'system'],
+          description: '音量类型',
+        },
+        direction: {
+          type: 'string',
+          enum: ['up', 'down'],
+          description: '调整方向: up(增大), down(减小)',
+        },
+        showUI: { type: 'boolean', description: '是否显示音量 UI' },
+      },
+      required: ['stream', 'direction'],
+    },
+    async execute(_id: string, params: { stream: string; direction: 'up' | 'down'; showUI?: boolean }) {
+      try {
+        const result = await bridge.adjustVolume(params.stream, params.direction, params.showUI);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_ringer_mode',
+    description: '获取或设置 Android 铃声模式',
+    parameters: {
+      type: 'object',
+      properties: {
+        mode: {
+          type: 'string',
+          enum: ['normal', 'silent', 'vibrate'],
+          description: '铃声模式: normal(正常), silent(静音), vibrate(振动)。不提供则获取当前模式',
+        },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { mode?: 'normal' | 'silent' | 'vibrate' }) {
+      try {
+        if (params.mode) {
+          const result = await bridge.setRingerMode(params.mode);
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        } else {
+          const result = await bridge.getRingerMode();
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        }
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 闹钟工具 ==========
+
+  api.registerTool({
+    name: 'android_alarm_set',
+    description: '设置 Android 闹钟',
+    parameters: {
+      type: 'object',
+      properties: {
+        hour: { type: 'number', description: '小时 (0-23)' },
+        minute: { type: 'number', description: '分钟 (0-59)' },
+        message: { type: 'string', description: '闹钟标签/消息' },
+        days: {
+          type: 'array',
+          items: { type: 'number' },
+          description: '重复的星期 (1=周日, 2=周一, ..., 7=周六)',
+        },
+        skipUI: { type: 'boolean', description: '跳过闹钟 UI 确认' },
+        vibrate: { type: 'boolean', description: '是否振动，默认 true' },
+      },
+      required: ['hour', 'minute'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.setAlarm(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_timer_set',
+    description: '设置 Android 倒计时器',
+    parameters: {
+      type: 'object',
+      properties: {
+        duration: { type: 'number', description: '总秒数' },
+        minutes: { type: 'number', description: '分钟数' },
+        seconds: { type: 'number', description: '秒数' },
+        hours: { type: 'number', description: '小时数' },
+        message: { type: 'string', description: '计时器标签' },
+        skipUI: { type: 'boolean', description: '跳过计时器 UI' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.setTimer(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_alarm_dismiss',
+    description: '关闭正在响的闹钟',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.dismissAlarm();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_alarm_snooze',
+    description: '延迟正在响的闹钟（稍后提醒）',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.snoozeAlarm();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_alarm_show',
+    description: '打开系统闹钟应用',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.showAlarms();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 通知工具 ==========
+
+  api.registerTool({
+    name: 'android_notification_list',
+    description: '获取 Android 设备当前的通知列表（需要通知访问权限）',
+    parameters: {
+      type: 'object',
+      properties: {
+        package: { type: 'string', description: '按应用包名筛选' },
+        limit: { type: 'number', description: '返回数量限制，默认 50' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getNotifications(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_notification_send',
+    description: '发送一条本地通知',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: '通知标题' },
+        content: { type: 'string', description: '通知内容' },
+        id: { type: 'number', description: '通知 ID，用于更新或取消' },
+        priority: { type: 'number', description: '优先级 -2 到 2' },
+        ongoing: { type: 'boolean', description: '是否为持续通知' },
+        silent: { type: 'boolean', description: '是否静默（无声音/振动）' },
+        bigText: { type: 'string', description: '展开后显示的长文本' },
+      },
+      required: ['title', 'content'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.sendNotification(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_notification_cancel',
+    description: '取消指定的通知',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', description: '要取消的通知 ID' },
+      },
+      required: ['id'],
+    },
+    async execute(_id: string, params: { id: number }) {
+      try {
+        const result = await bridge.cancelNotification(params.id);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_notification_cancel_all',
+    description: '取消所有通知',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.cancelAllNotifications();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_notification_access',
+    description: '检查通知访问权限状态，如果没有权限可以打开设置',
+    parameters: {
+      type: 'object',
+      properties: {
+        openSettings: { type: 'boolean', description: '是否打开通知设置页面' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { openSettings?: boolean }) {
+      try {
+        if (params.openSettings) {
+          const result = await bridge.openNotificationSettings();
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        } else {
+          const result = await bridge.checkNotificationAccess();
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        }
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 屏幕工具 ==========
+
+  api.registerTool({
+    name: 'android_screen_info',
+    description: '获取屏幕状态信息（亮度、超时时间、显示参数）',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getScreenInfo();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_brightness_set',
+    description: '设置屏幕亮度',
+    parameters: {
+      type: 'object',
+      properties: {
+        value: { type: 'number', description: '亮度值 0-255' },
+        percentage: { type: 'number', description: '亮度百分比 0-100' },
+        auto: { type: 'boolean', description: '是否启用自动亮度' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.setBrightness(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== WiFi 工具 ==========
+
+  api.registerTool({
+    name: 'android_wifi_status',
+    description: '获取 WiFi 状态和连接信息',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getWifiStatus();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_wifi_scan',
+    description: '扫描附近的 WiFi 网络',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.scanWifi();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_wifi_settings',
+    description: '打开 WiFi 设置页面',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.openWifiSettings();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 蓝牙工具 ==========
+
+  api.registerTool({
+    name: 'android_bluetooth_status',
+    description: '获取蓝牙状态',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getBluetoothStatus();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_bluetooth_devices',
+    description: '获取已配对的蓝牙设备列表',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getPairedDevices();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_bluetooth_settings',
+    description: '打开蓝牙设置页面',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.openBluetoothSettings();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 手电筒工具 ==========
+
+  api.registerTool({
+    name: 'android_flashlight',
+    description: '控制手电筒（开/关/切换）',
+    parameters: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['on', 'off', 'toggle', 'status'], description: '操作类型' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { action?: string }) {
+      try {
+        let result;
+        switch (params.action) {
+          case 'on': result = await bridge.setFlashlight(true); break;
+          case 'off': result = await bridge.setFlashlight(false); break;
+          case 'toggle': result = await bridge.toggleFlashlight(); break;
+          default: result = await bridge.getFlashlightStatus();
+        }
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 振动工具 ==========
+
+  api.registerTool({
+    name: 'android_vibrate',
+    description: '控制设备振动',
+    parameters: {
+      type: 'object',
+      properties: {
+        duration: { type: 'number', description: '振动时长（毫秒），默认 200' },
+        amplitude: { type: 'number', description: '振动强度 1-255' },
+        pattern: { type: 'array', items: { type: 'number' }, description: '振动模式（毫秒数组）' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        let result;
+        if (params.pattern) {
+          result = await bridge.vibratePattern({ pattern: params.pattern, repeat: params.repeat });
+        } else {
+          result = await bridge.vibrate({ duration: params.duration, amplitude: params.amplitude });
+        }
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 勿扰模式工具 ==========
+
+  api.registerTool({
+    name: 'android_dnd',
+    description: '获取或设置勿扰模式',
+    parameters: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['status', 'enable', 'disable', 'toggle', 'settings'], description: '操作类型' },
+        filter: { type: 'string', enum: ['priority', 'alarms', 'none'], description: '勿扰过滤级别' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { action?: string; filter?: string }) {
+      try {
+        let result;
+        switch (params.action) {
+          case 'enable': result = await bridge.setDnd(true, params.filter); break;
+          case 'disable': result = await bridge.setDnd(false); break;
+          case 'toggle': result = await bridge.toggleDnd(); break;
+          case 'settings': result = await bridge.openDndSettings(); break;
+          default: result = await bridge.getDndStatus();
+        }
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 存储工具 ==========
+
+  api.registerTool({
+    name: 'android_storage_info',
+    description: '获取设备存储空间信息',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getStorageInfo();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 传感器工具 ==========
+
+  api.registerTool({
+    name: 'android_sensor_list',
+    description: '获取设备可用的传感器列表',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.listSensors();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_sensor_read',
+    description: '读取指定传感器的数据',
+    parameters: {
+      type: 'object',
+      properties: {
+        sensor: { type: 'string', enum: ['accelerometer', 'gyroscope', 'magnetic', 'light', 'pressure', 'proximity', 'gravity', 'rotation', 'step_counter', 'humidity', 'temperature'], description: '传感器类型' },
+      },
+      required: ['sensor'],
+    },
+    async execute(_id: string, params: { sensor: string }) {
+      try {
+        const result = await bridge.readSensor(params.sensor);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 文件工具 ==========
+
+  api.registerTool({
+    name: 'android_file_list',
+    description: '列出目录中的文件',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '目录路径' },
+        recursive: { type: 'boolean', description: '是否递归列出' },
+        showHidden: { type: 'boolean', description: '是否显示隐藏文件' },
+        limit: { type: 'number', description: '最大返回数量' },
+      },
+      required: ['path'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.listFiles(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_file_read',
+    description: '读取文件内容',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '文件路径' },
+        maxSize: { type: 'number', description: '最大读取字节数' },
+      },
+      required: ['path'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.readFile(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_file_write',
+    description: '写入文件内容',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '文件路径' },
+        content: { type: 'string', description: '要写入的内容' },
+        append: { type: 'boolean', description: '是否追加模式' },
+      },
+      required: ['path', 'content'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.writeFile(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_file_directories',
+    description: '获取常用目录路径',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getCommonDirectories();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 下载工具 ==========
+
+  api.registerTool({
+    name: 'android_download_list',
+    description: '获取下载列表',
+    parameters: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['running', 'pending', 'paused', 'successful', 'failed'], description: '按状态筛选' },
+        limit: { type: 'number', description: '最大返回数量' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.listDownloads(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_download_start',
+    description: '开始下载文件',
+    parameters: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: '下载 URL' },
+        title: { type: 'string', description: '下载标题' },
+        fileName: { type: 'string', description: '保存的文件名' },
+        showNotification: { type: 'boolean', description: '是否显示下载通知' },
+      },
+      required: ['url'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.startDownload(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_download_status',
+    description: '获取下载状态',
+    parameters: {
+      type: 'object',
+      properties: {
+        downloadId: { type: 'number', description: '下载 ID' },
+      },
+      required: ['downloadId'],
+    },
+    async execute(_id: string, params: { downloadId: number }) {
+      try {
+        const result = await bridge.getDownloadStatus(params.downloadId);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 相机工具 ==========
+
+  api.registerTool({
+    name: 'android_camera_info',
+    description: '获取相机信息',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getCameraInfo();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_camera_photo',
+    description: '打开相机拍照',
+    parameters: {
+      type: 'object',
+      properties: {
+        facing: { type: 'string', enum: ['front', 'back'], description: '使用前置或后置摄像头' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.takePhoto(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_camera_video',
+    description: '打开相机录像',
+    parameters: {
+      type: 'object',
+      properties: {
+        facing: { type: 'string', enum: ['front', 'back'], description: '使用前置或后置摄像头' },
+        quality: { type: 'string', enum: ['low', 'high'], description: '视频质量' },
+        maxDuration: { type: 'number', description: '最大录制时长（秒）' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.recordVideo(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 录音工具 ==========
+
+  api.registerTool({
+    name: 'android_recorder_status',
+    description: '获取录音状态',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getRecorderStatus();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_recorder_start',
+    description: '开始录音',
+    parameters: {
+      type: 'object',
+      properties: {
+        format: { type: 'string', enum: ['m4a', '3gp', 'amr', 'aac'], description: '输出格式' },
+        quality: { type: 'string', enum: ['low', 'medium', 'high'], description: '录音质量' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.startRecording(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_recorder_stop',
+    description: '停止录音',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.stopRecording();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
   console.log('[Android Bridge] Registered Android tools');
 }

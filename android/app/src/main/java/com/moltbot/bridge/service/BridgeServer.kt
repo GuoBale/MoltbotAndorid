@@ -25,15 +25,50 @@ class BridgeServer(
 
     // API 模块
     private val apis = mapOf(
+        // 核心功能
         "health" to HealthApi(context),
         "system" to SystemApi(context),
+        
+        // 通讯相关
         "contacts" to ContactsApi(context),
+        "sms" to SmsApi(context),
+        "calllog" to CallLogApi(context),
+        
+        // 应用与媒体
         "apps" to AppsApi(context),
         "media" to MediaApi(context),
         "calendar" to CalendarApi(context),
+        
+        // 系统工具
         "clipboard" to ClipboardApi(context),
         "tts" to TtsApi(context),
         "intent" to IntentApi(context),
+        
+        // 位置与传感器
+        "location" to LocationApi(context),
+        "sensor" to SensorApi(context),
+        
+        // 音量与通知
+        "volume" to VolumeApi(context),
+        "alarm" to AlarmApi(context),
+        "notification" to NotificationApi(context),
+        "dnd" to DndApi(context),
+        
+        // 连接与硬件
+        "wifi" to WifiApi(context),
+        "bluetooth" to BluetoothApi(context),
+        "flashlight" to FlashlightApi(context),
+        "vibration" to VibrationApi(context),
+        "screen" to ScreenApi(context),
+        
+        // 存储与文件
+        "storage" to StorageApi(context),
+        "file" to FileApi(context),
+        "download" to DownloadApi(context),
+        
+        // 相机与录音
+        "camera" to CameraApi(context),
+        "recorder" to RecorderApi(context),
     )
 
     override fun serve(session: IHTTPSession): Response {
