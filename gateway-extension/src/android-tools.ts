@@ -18,6 +18,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
     },
     handler: async () => {
       return await bridge.getDeviceInfo();
@@ -30,6 +31,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
     },
     handler: async () => {
       return await bridge.getBatteryStatus();
@@ -42,6 +44,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
     },
     handler: async () => {
       return await bridge.getNetworkStatus();
@@ -69,6 +72,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
           description: '偏移量，用于分页',
         },
       },
+      required: [],
     },
     handler: async (params: { query?: string; limit?: number; offset?: number }) => {
       return await bridge.getContacts({
@@ -115,6 +119,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
           description: '搜索关键词，用于筛选应用名称',
         },
       },
+      required: [],
     },
     handler: async (params: { type?: 'user' | 'system' | 'all'; query?: string }) => {
       return await bridge.getApps({
@@ -187,6 +192,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
           description: '排序顺序',
         },
       },
+      required: [],
     },
     handler: async (params: {
       limit?: number;
@@ -207,6 +213,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
         limit: { type: 'number', description: '返回数量限制' },
         offset: { type: 'number', description: '偏移量' },
       },
+      required: [],
     },
     handler: async (params: { limit?: number; offset?: number }) => {
       return await bridge.getAudioFiles(params);
@@ -222,6 +229,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
         limit: { type: 'number', description: '返回数量限制' },
         offset: { type: 'number', description: '偏移量' },
       },
+      required: [],
     },
     handler: async (params: { limit?: number; offset?: number }) => {
       return await bridge.getVideos(params);
@@ -249,6 +257,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
           description: '返回数量限制',
         },
       },
+      required: [],
     },
     handler: async (params: { startTime?: number; endTime?: number; limit?: number }) => {
       return await bridge.getCalendarEvents(params);
@@ -304,6 +313,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
           description: '按号码筛选，只返回与该号码的往来短信',
         },
       },
+      required: [],
     },
     handler: async (params: {
       type?: 'inbox' | 'sent' | 'all';
@@ -322,6 +332,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
     },
     handler: async () => {
       return await bridge.getClipboard();
@@ -379,6 +390,7 @@ export function registerAndroidTools(gateway: any, bridge: AndroidBridgeClient):
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
     },
     handler: async () => {
       return await bridge.stopSpeaking();
