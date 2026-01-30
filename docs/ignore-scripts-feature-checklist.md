@@ -2,7 +2,23 @@
 
 在 Android/Termux 等环境使用  
 `npm install -g moltbot@latest --ignore-scripts`  
-时，以下清单标出**可能受影响**的功能。  
+时，以下清单标出**可能受影响**的功能。
+
+---
+
+## 为什么 Android 上需要加 `--ignore-scripts` 才能部署？
+
+1. **依赖在安装时会跑脚本**  
+   执行 `npm install -g moltbot` 时，npm 会执行**包本身和所有依赖**的 lifecycle 脚本（如 `preinstall`、`postinstall`）。这些脚本里有的会编译/下载原生模块，有的会做系统检测。
+
+2. **部分依赖明确不支持 Android**  
+   moltbot 的（直接或间接）依赖里，例如 **`@matrix-org/matrix-sdk-crypto-nodejs`**，在 postinstall 里会检测操作系统，遇到 Android 直接报错 **Unsupported OS: android** 并退出。一旦有一个包的脚本失败，整次安装就会失败，所以在 Android/Termux 上「从 npm 安装」或「从源码安装」都可能卡在这一步。
+
+3. **`--ignore-scripts` 做了什么**  
+   加上 `--ignore-scripts` 后，npm **不会执行任何** preinstall/install/postinstall 等脚本，只解包、装文件。这样就不会触发上述「不支持 Android」的脚本，安装可以完成，Gateway + Android Bridge 就能部署起来。
+
+4. **代价**  
+   跳过脚本的代价是：依赖里靠 postinstall 完成的工作（原生模块安装、补丁应用等）都不会做，所以像 Matrix、sharp、Canvas、本地 LLM 等依赖这些步骤的功能可能不可用。**只跑 Gateway + Android Bridge 时通常不需要这些**，所以用 `--ignore-scripts` 在 Android 上部署是推荐做法。  
 ✅ = 一般不受影响 | ⚠️ = 可能受影响 | ❌ = 易受影响（依赖安装时脚本或原生模块）
 
 ---
