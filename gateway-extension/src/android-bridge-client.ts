@@ -241,6 +241,10 @@ export class AndroidBridgeClient {
     return this.request('GET', `/sms${queryString ? `?${queryString}` : ''}`);
   }
 
+  async sendSms(params: { to: string; text: string }): Promise<{ sent: boolean; to: string; parts: number }> {
+    return this.request('POST', '/sms/send', params);
+  }
+
   // ========== Clipboard API ==========
 
   async getClipboard(): Promise<{
@@ -780,6 +784,12 @@ export class AndroidBridgeClient {
     query?: string;
   }): Promise<any> {
     return this.request('POST', '/appshortcuts/open', params);
+  }
+
+  // ========== Root API ==========
+
+  async getRootStatus(): Promise<{ available: boolean; exitCode: number; idOutput?: string; error?: string; note?: string }> {
+    return this.request('GET', '/root/status');
   }
 }
 

@@ -296,6 +296,97 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     },
   });
 
+  api.registerTool({
+    name: 'android_sms_send',
+    description: '发送短信。需要 Bridge 应用已授予发送短信权限。',
+    parameters: {
+      type: 'object',
+      properties: {
+        to: {
+          type: 'string',
+          description: '收件人号码（如 13800138000 或 +8613800138000）',
+        },
+        text: {
+          type: 'string',
+          description: '短信正文内容',
+        },
+      },
+      required: ['to', 'text'],
+    },
+    async execute(_id: string, params: { to: string; text: string }) {
+      try {
+        const result = await bridge.sendSms(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 日历工具 ==========
+
+  api.registerTool({
+    name: 'android_calendar_list',
+    description: '获取 Android 设备上的日历列表',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getCalendars();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_calendar_events',
+    description: '获取日历事件列表，可按时间范围筛选',
+    parameters: {
+      type: 'object',
+      properties: {
+        startTime: { type: 'number', description: '开始时间（毫秒时间戳），默认昨天' },
+        endTime: { type: 'number', description: '结束时间（毫秒时间戳），默认 30 天后' },
+        limit: { type: 'number', description: '返回数量限制，默认 100' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.getCalendarEvents(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_calendar_create_event',
+    description: '在日历中创建事件',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: '事件标题' },
+        startTime: { type: 'number', description: '开始时间（毫秒时间戳）' },
+        endTime: { type: 'number', description: '结束时间（毫秒时间戳）' },
+        description: { type: 'string', description: '事件描述' },
+        location: { type: 'string', description: '事件地点' },
+        calendarId: { type: 'string', description: '日历 ID，不传则使用默认日历' },
+        allDay: { type: 'boolean', description: '是否全天事件' },
+      },
+      required: ['title', 'startTime', 'endTime'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.createCalendarEvent(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
   // ========== 剪贴板工具 ==========
 
   api.registerTool({
@@ -1456,6 +1547,20 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     async execute(_id: string, _params: any) {
       try {
         const result = await bridge.getInstalledAppShortcuts();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_root_status',
+    description: '检测设备是否已 Root 且 Bridge 是否已获得 root 权限。在已 Root 设备上首次调用会触发 Magisk 授权弹窗，用户允许后 Bridge 即拥有 root 权限。',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getRootStatus();
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
