@@ -61,10 +61,14 @@ export class AndroidBridgeClient {
 
       const result = (await response.json()) as ApiResponse<T>;
 
-      // Bridge API 使用 type 字段判断成功/失败
-      // 成功: "com.moltbot.bridge.protocol.ApiResponse.Success"
-      // 失败: "com.moltbot.bridge.protocol.ApiResponse.Error"
-      const isSuccess = result.type?.includes('Success') ?? false;
+      // Bridge API 使用 kotlinx.serialization 的 sealed class
+      // 成功响应: { type: "Success", ok: true, data: {...}, meta: {...} }
+      // 失败响应: { type: "Error", ok: false, error: {...}, meta: {...} }
+      // 
+      // 判断成功: 优先检查 ok 字段，其次检查 type 字段
+      const isSuccess = result.ok === true || 
+                        result.type === 'Success' || 
+                        result.type?.includes('Success') === true;
       
       if (!isSuccess) {
         const error = result.error;

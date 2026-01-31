@@ -3,11 +3,14 @@
  */
 
 // API 响应类型
-// Bridge API 返回格式: { type: "...Success" | "...Error", data: {...}, meta: {...} }
+// Bridge API 使用 kotlinx.serialization 的 sealed class
+// 成功响应: { type: "Success", ok: true, data: {...}, meta: {...} }
+// 失败响应: { type: "Error", ok: false, error: {...}, meta: {...} }
 export interface ApiResponse<T = unknown> {
-  type: string;
-  data?: T;
-  error?: ApiError;
+  type?: string;       // kotlinx.serialization sealed class 类型标识: "Success" | "Error"
+  ok?: boolean;        // 成功标志: true | false
+  data?: T;            // 成功时的数据
+  error?: ApiError;    // 失败时的错误信息
   meta?: {
     timestamp: number;
     durationMs: number;
