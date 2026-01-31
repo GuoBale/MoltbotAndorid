@@ -1,11 +1,74 @@
 {
   "id": "android-bridge",
   "name": "Android Bridge",
-  "description": "Gateway extension for Android Bridge Service (contacts, SMS, device, etc.)",
-  "version": "1.0.0",
+  "description": "Gateway extension for Android Bridge Service. Provides 50+ tools for Android device control: contacts, SMS, calls, apps, calendar, location, volume, alarms, notifications, files, camera, and more. Includes scenario guides for daily briefing, quick actions, contact intelligence, automation workflows, photo assistant, location navigator, and security checks.",
+  "version": "1.1.0",
+  "author": "MoltbotAndroid",
+  "keywords": [
+    "android",
+    "bridge",
+    "gateway",
+    "phone",
+    "contacts",
+    "sms",
+    "calendar",
+    "automation"
+  ],
+  "capabilities": {
+    "tools": true,
+    "scenarios": true
+  },
+  "scenarios": [
+    {
+      "id": "daily-briefing",
+      "name": "每日播报",
+      "triggers": ["早安", "今天有什么事", "每日播报"]
+    },
+    {
+      "id": "quick-actions",
+      "name": "快捷操作",
+      "triggers": ["扫一扫", "付款码", "手电筒", "闹钟"]
+    },
+    {
+      "id": "contact-intelligence",
+      "name": "联系人分析",
+      "triggers": ["谁联系最多", "重要联系人"]
+    },
+    {
+      "id": "automation-workflows",
+      "name": "自动化工作流",
+      "triggers": ["睡觉模式", "会议模式", "外出模式"]
+    },
+    {
+      "id": "photo-assistant",
+      "name": "相册助手",
+      "triggers": ["看相册", "拍照"]
+    },
+    {
+      "id": "location-navigator",
+      "name": "位置导航",
+      "triggers": ["我在哪", "导航到"]
+    },
+    {
+      "id": "security-privacy",
+      "name": "安全隐私",
+      "triggers": ["检查安全", "隐私检查"]
+    }
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": {}
+    "properties": {
+      "bridgeHost": {
+        "type": "string",
+        "description": "Bridge Service host address",
+        "default": "127.0.0.1"
+      },
+      "bridgePort": {
+        "type": "number",
+        "description": "Bridge Service port",
+        "default": 18800
+      }
+    }
   }
 }

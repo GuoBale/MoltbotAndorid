@@ -5,8 +5,10 @@
  */
 
 import { AndroidBridgeClient, BridgeConfig } from './android-bridge-client.js';
+import { listScenarios, getScenario, matchScenario, generateSystemPrompt, ScenarioInfo } from './android-scenarios.js';
 
 export { AndroidBridgeClient, BridgeConfig };
+export { listScenarios, getScenario, matchScenario, generateSystemPrompt };
 
 // 导出类型
 export * from './types.js';
@@ -1315,18 +1317,20 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_image_read',
-    description: '从手机存储路径读取图片文件内容，用于识图/看图。仅用于手机路径（如 /storage/emulated/0/DCIM/Camera/xxx.jpg），不要用本机 image 工具读该路径。返回内容含 base64 等时可交给识图能力分析。',
+    description: '从手机存储路径读取图片文件内容，用于识图/看图。仅用于手机路径（如 /storage/emulated/0/DCIM/Camera/xxx.jpg），不要用本机 image 工具读该路径。返回内容含 base64 等时可交给识图能力分析。默认最大读取 1GB。',
     parameters: {
       type: 'object',
       properties: {
         path: { type: 'string', description: '手机上的图片文件路径' },
-        maxSize: { type: 'number', description: '最大读取字节数，可选' },
+        maxSize: { type: 'number', description: '最大读取字节数，默认 1GB (1073741824)' },
       },
       required: ['path'],
     },
     async execute(_id: string, params: any) {
       try {
-        const result = await bridge.readFile({ path: params.path, maxSize: params.maxSize });
+        // 默认最大读取 1GB
+        const maxSize = params.maxSize ?? 1073741824;
+        const result = await bridge.readFile({ path: params.path, maxSize });
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
@@ -1615,6 +1619,83 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
       }
+    },
+  });
+
+  // ========== 场景指南工具 ==========
+
+  api.registerTool({
+    name: 'android_scenario_list',
+    description: '列出所有可用的 Android 操作场景（每日播报、快捷操作、联系人分析、自动化工作流等）',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      const scenarios = listScenarios();
+      const result = scenarios.map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        triggers: s.triggers,
+      }));
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    },
+  });
+
+  api.registerTool({
+    name: 'android_scenario_guide',
+    description: '获取指定场景的详细操作指南和工作流。场景 ID：daily-briefing(每日播报)、quick-actions(快捷操作)、contact-intelligence(联系人分析)、automation-workflows(自动化工作流)、photo-assistant(相册助手)、location-navigator(位置导航)、security-privacy(安全隐私)。',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          description: '场景 ID：daily-briefing, quick-actions, contact-intelligence, automation-workflows, photo-assistant, location-navigator, security-privacy',
+        },
+        query: {
+          type: 'string',
+          description: '或者提供用户请求，自动匹配合适的场景',
+        },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { id?: string; query?: string }) {
+      let scenario = null;
+      
+      if (params.id) {
+        scenario = getScenario(params.id);
+      } else if (params.query) {
+        scenario = matchScenario(params.query);
+      }
+      
+      if (!scenario) {
+        const available = listScenarios().map(s => `${s.id}: ${s.name}`).join('\n');
+        return { 
+          content: [{ 
+            type: 'text', 
+            text: `未找到匹配的场景。可用场景：\n${available}` 
+          }] 
+        };
+      }
+      
+      const result = {
+        id: scenario.id,
+        name: scenario.name,
+        description: scenario.description,
+        triggers: scenario.triggers,
+        tools: scenario.tools,
+        workflow: scenario.workflow,
+      };
+      
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    },
+  });
+
+  api.registerTool({
+    name: 'android_system_prompt',
+    description: '获取 Android Bridge 的系统提示词，包含所有工具能力和使用规则。用于配置飞书/Operator 的系统提示。',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      const prompt = generateSystemPrompt();
+      return { content: [{ type: 'text', text: prompt }] };
     },
   });
 

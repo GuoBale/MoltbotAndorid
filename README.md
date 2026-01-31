@@ -212,6 +212,7 @@ WebSocket: ws://<device-ip>:18789
 - [协议说明](docs/bridge-protocol.md)
 - [Termux 配置](docs/termux-setup.md)
 - [相册/DCIM 访问权限](docs/storage-dcim-access.md)（读图 EACCES 时参考）
+- [Android Bridge 模型提示词](docs/android-bridge-prompt.md)（给飞书/Operator 的系统提示词）
 
 ## 目录说明
 
@@ -222,6 +223,23 @@ Bridge Service Android 应用，提供 HTTP REST API 供 Gateway 调用。
 ### gateway-extension/
 
 moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的工具。
+
+**包含 50+ 工具和 7 个内置场景：**
+
+| 场景 | 触发词示例 | 说明 |
+|------|-----------|------|
+| 每日播报 | "早安"、"今天有什么事" | 汇总日程、短信、来电、电池状态 |
+| 快捷操作 | "微信扫一扫"、"手电筒" | 一句话完成常用操作 |
+| 联系人分析 | "谁联系最多" | 分析通讯频率、重要联系人 |
+| 自动化工作流 | "睡觉模式"、"会议模式" | 组合多个操作完成复杂任务 |
+| 相册助手 | "看看相册"、"帮我拍照" | 浏览、拍摄、分析图片 |
+| 位置导航 | "我在哪"、"导航到" | 位置查询、地址转换、导航 |
+| 安全隐私 | "检查手机安全" | 应用权限、存储、系统检查 |
+
+**场景工具：**
+- `android_scenario_list` - 列出所有可用场景
+- `android_scenario_guide` - 获取场景详细操作指南
+- `android_system_prompt` - 获取系统提示词模板
 
 ### scripts/
 
@@ -479,6 +497,29 @@ Bridge Service 需要以下 Android 权限：
 - 媒体文件访问
 - 录音
 - 位置
+
+## AI Agent Skills
+
+本项目提供一系列预置的 AI Agent Skills，帮助快速完成手机操作任务。
+
+### 可用 Skills
+
+| Skill | 描述 | 触发词示例 |
+|-------|------|------------|
+| `android-smart-assistant` | 综合性手机智能助手 | "帮我操作手机" |
+| `android-daily-briefing` | 每日手机信息播报 | "早安"、"今天有什么事" |
+| `android-contact-intelligence` | 联系人智能分析 | "谁联系最多"、"失联提醒" |
+| `android-quick-actions` | 一句话快捷操作 | "微信扫一扫"、"打开手电筒" |
+| `android-photo-assistant` | 相册浏览与拍摄 | "看看相册"、"帮我拍照" |
+| `android-location-navigator` | 位置与导航服务 | "我在哪"、"导航到xxx" |
+| `android-automation-workflows` | 场景自动化工作流 | "睡觉模式"、"会议模式" |
+| `android-security-privacy` | 安全隐私检查 | "检查手机安全" |
+
+### 使用方式
+
+Skills 位于 `.cursor/skills/` 目录，在 Cursor IDE 中自动加载。当用户请求相关任务时，AI Agent 会自动应用对应的 skill 来完成任务。
+
+详细说明见 [AGENTS.md](AGENTS.md) 和 [.cursor/skills/README.md](.cursor/skills/README.md)。
 
 ## 许可证
 
