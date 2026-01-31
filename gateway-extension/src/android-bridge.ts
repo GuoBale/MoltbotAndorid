@@ -343,19 +343,54 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_calendar_events',
-    description: '获取日历事件列表，可按时间范围筛选',
+    description: `获取日历事件列表，可按时间范围筛选。
+
+便捷参数：
+- range: 'today'(今天), 'tomorrow'(明天), 'week'(本周), 'month'(本月)
+- 或使用 startTime/endTime 毫秒时间戳精确指定
+
+默认查询：昨天到30天后的事件`,
     parameters: {
       type: 'object',
       properties: {
-        startTime: { type: 'number', description: '开始时间（毫秒时间戳），默认昨天' },
-        endTime: { type: 'number', description: '结束时间（毫秒时间戳），默认 30 天后' },
+        range: { type: 'string', enum: ['today', 'tomorrow', 'week', 'month'], description: '快捷时间范围' },
+        startTime: { type: 'number', description: '开始时间（毫秒时间戳）' },
+        endTime: { type: 'number', description: '结束时间（毫秒时间戳）' },
         limit: { type: 'number', description: '返回数量限制，默认 100' },
       },
       required: [],
     },
     async execute(_id: string, params: any) {
       try {
-        const result = await bridge.getCalendarEvents(params);
+        let queryParams = { ...params };
+        
+        // 处理便捷时间范围
+        if (params.range && !params.startTime && !params.endTime) {
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          
+          switch (params.range) {
+            case 'today':
+              queryParams.startTime = today.getTime();
+              queryParams.endTime = today.getTime() + 24 * 60 * 60 * 1000;
+              break;
+            case 'tomorrow':
+              queryParams.startTime = today.getTime() + 24 * 60 * 60 * 1000;
+              queryParams.endTime = today.getTime() + 2 * 24 * 60 * 60 * 1000;
+              break;
+            case 'week':
+              queryParams.startTime = today.getTime();
+              queryParams.endTime = today.getTime() + 7 * 24 * 60 * 60 * 1000;
+              break;
+            case 'month':
+              queryParams.startTime = today.getTime();
+              queryParams.endTime = today.getTime() + 30 * 24 * 60 * 60 * 1000;
+              break;
+          }
+        }
+        delete queryParams.range;
+        
+        const result = await bridge.getCalendarEvents(queryParams);
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
@@ -365,23 +400,76 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_calendar_create_event',
-    description: '在日历中创建事件',
+    description: `在日历中创建事件。
+
+时间参数说明：
+- startTime/endTime 使用毫秒时间戳
+- 可以使用 daysFromNow 快捷设置（如 daysFromNow=1 表示明天）
+- 全天事件设置 allDay=true，此时 startTime 只需要日期的开始时间
+
+示例：创建明天的全天事件
+- title: "出门"
+- daysFromNow: 1
+- allDay: true
+
+示例：创建后天下午2点到4点的会议
+- title: "会议"
+- startTime: 明天14:00的毫秒时间戳
+- endTime: 明天16:00的毫秒时间戳`,
     parameters: {
       type: 'object',
       properties: {
-        title: { type: 'string', description: '事件标题' },
-        startTime: { type: 'number', description: '开始时间（毫秒时间戳）' },
-        endTime: { type: 'number', description: '结束时间（毫秒时间戳）' },
+        title: { type: 'string', description: '事件标题（必填）' },
+        startTime: { type: 'number', description: '开始时间（毫秒时间戳），如果设置了 daysFromNow 则可省略' },
+        endTime: { type: 'number', description: '结束时间（毫秒时间戳），如果设置了 daysFromNow 和 allDay 则可省略' },
+        daysFromNow: { type: 'number', description: '从今天起的天数（0=今天，1=明天，2=后天...），用于快捷设置日期' },
+        hour: { type: 'number', description: '开始小时（0-23），配合 daysFromNow 使用，默认 9' },
+        durationHours: { type: 'number', description: '持续小时数，默认 1' },
         description: { type: 'string', description: '事件描述' },
         location: { type: 'string', description: '事件地点' },
         calendarId: { type: 'string', description: '日历 ID，不传则使用默认日历' },
-        allDay: { type: 'boolean', description: '是否全天事件' },
+        allDay: { type: 'boolean', description: '是否全天事件，默认 false' },
       },
-      required: ['title', 'startTime', 'endTime'],
+      required: ['title'],
     },
     async execute(_id: string, params: any) {
       try {
-        const result = await bridge.createCalendarEvent(params);
+        // 处理便捷时间参数
+        let startTime = params.startTime;
+        let endTime = params.endTime;
+        
+        if (params.daysFromNow !== undefined) {
+          const now = new Date();
+          const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + params.daysFromNow);
+          
+          if (params.allDay) {
+            // 全天事件：从当天 0:00 开始，持续24小时
+            startTime = targetDate.getTime();
+            endTime = startTime + 24 * 60 * 60 * 1000;
+          } else {
+            // 指定时间的事件
+            const hour = params.hour ?? 9;
+            const durationHours = params.durationHours ?? 1;
+            targetDate.setHours(hour, 0, 0, 0);
+            startTime = targetDate.getTime();
+            endTime = startTime + durationHours * 60 * 60 * 1000;
+          }
+        }
+        
+        if (!startTime || !endTime) {
+          return { content: [{ type: 'text', text: 'Error: 需要提供 startTime/endTime 或 daysFromNow 参数' }] };
+        }
+        
+        const eventParams = {
+          ...params,
+          startTime,
+          endTime,
+        };
+        delete eventParams.daysFromNow;
+        delete eventParams.hour;
+        delete eventParams.durationHours;
+        
+        const result = await bridge.createCalendarEvent(eventParams);
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
