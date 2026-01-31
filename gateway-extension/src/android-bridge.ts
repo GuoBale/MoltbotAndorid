@@ -1294,11 +1294,11 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_file_read',
-    description: '读取文件内容',
+    description: '读取手机上的文件内容。路径必须是手机存储路径（如 /storage/emulated/0/DCIM/Camera/xxx.jpg）。不要用本机的 read 工具读手机路径，会 EACCES。',
     parameters: {
       type: 'object',
       properties: {
-        path: { type: 'string', description: '文件路径' },
+        path: { type: 'string', description: '手机上的文件路径' },
         maxSize: { type: 'number', description: '最大读取字节数' },
       },
       required: ['path'],
@@ -1306,6 +1306,27 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     async execute(_id: string, params: any) {
       try {
         const result = await bridge.readFile(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_image_read',
+    description: '从手机存储路径读取图片文件内容，用于识图/看图。仅用于手机路径（如 /storage/emulated/0/DCIM/Camera/xxx.jpg），不要用本机 image 工具读该路径。返回内容含 base64 等时可交给识图能力分析。',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '手机上的图片文件路径' },
+        maxSize: { type: 'number', description: '最大读取字节数，可选' },
+      },
+      required: ['path'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.readFile({ path: params.path, maxSize: params.maxSize });
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };

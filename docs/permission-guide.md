@@ -202,6 +202,23 @@
 - `GET /api/v1/media/audio` - 获取音频列表
 - `GET /api/v1/media/video` - 获取视频列表
 
+#### 按路径读取文件（DCIM/相册等）— Android 11+
+
+在 Android 11（API 30）及以上，仅靠 `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE` **不能**通过绝对路径（如 `/storage/emulated/0/DCIM/Camera/xxx.jpg`）直接打开文件，会报 **EACCES: permission denied**。
+
+可选做法：
+
+1. **授予「所有文件」访问权限（推荐给需要读任意路径的场景）**
+   - 在 Manifest 中已声明 `MANAGE_EXTERNAL_STORAGE`。
+   - 应用需在运行时引导用户到 **设置 → 应用 → Moltbot Bridge → 权限**，开启 **「文件和媒体」→「允许管理所有文件」**（或系统提供的等效选项）。
+   - 授予后，Bridge 即可通过 `File(path)` 正常读取 DCIM、Download 等路径。
+
+2. **应用侧使用 MediaStore（无需「所有文件」）**
+   - 通过 MediaStore 按 content URI 打开图片/视频/音频，只需 `READ_MEDIA_IMAGES`（或旧版的 `READ_EXTERNAL_STORAGE`），无需 `MANAGE_EXTERNAL_STORAGE`。
+   - 若 Bridge 实现「按路径读文件」时，对媒体文件先查 MediaStore 再按 content URI 打开，可避免 EACCES。
+
+**遇到 `EACCES` 时的用户操作**：在手机上打开 **设置 → 应用 → Moltbot Bridge → 权限**，为存储/媒体相关项授予权限；若系统有「允许管理所有文件」，开启后即可按路径读取相册等文件。
+
 ---
 
 ### 录音权限
@@ -372,3 +389,11 @@ Bridge Service 旨在让 AI Agent 能够操作 Android 设备，因此需要相�
 ### Q: 数据会上传到服务器吗？
 
 不会。所有数据仅通过本地 HTTP 接口（localhost）传输，不涉及外部网络。
+
+### Q: 读相册/DCIM 照片时报 EACCES: permission denied 怎么办？
+
+说明按路径访问 `/storage/emulated/0/DCIM/...` 被系统拒绝（Android 11+ 分区存储限制）。请：
+
+1. 打开 **设置 → 应用 → Moltbot Bridge → 权限**。
+2. 若存在 **「文件和媒体」** 或 **「所有文件」** 等选项，请选择 **允许** 或 **允许管理所有文件**（视系统文案而定）。
+3. 保存后重试读图/读文件。若仍失败，确认是否已授予「存储」或「所有文件」类权限。

@@ -211,6 +211,7 @@ WebSocket: ws://<device-ip>:18789
 - [API 参考](docs/api-reference.md)
 - [协议说明](docs/bridge-protocol.md)
 - [Termux 配置](docs/termux-setup.md)
+- [相册/DCIM 访问权限](docs/storage-dcim-access.md)（读图 EACCES 时参考）
 
 ## 目录说明
 
