@@ -372,6 +372,25 @@ moltbot Gateway TypeScript 扩展，将 Android API 注册为 AI Agent 可用的
 3. **工具正在后台注册**  
    若刚连上或刚启动 Gateway，可等待几秒再试；若仍无 `android_*` 工具，按上面 1、2 检查连接对象与扩展配置。
 
+### 日志里出现 `[tools] read failed: ENOENT ... MEMORY.md` / `memory/2025-xx-xx.md`
+
+说明 clawdbot/小虾 的「读记忆」工具在访问 **`~/clawd/`** 下的文件时，文件或目录不存在。路径一般是 Termux 的 `$HOME/clawd`（即 `/data/data/com.termux/files/home/clawd/`）。
+
+**处理方式（在 Termux 里执行）：**
+
+1. **创建目录和占位文件，避免 ENOENT：**
+   ```bash
+   mkdir -p ~/clawd/memory
+   touch ~/clawd/MEMORY.md
+   # 若需要按日期记忆，可创建对应日期文件，例如：
+   touch ~/clawd/memory/2025-01-16.md
+   touch ~/clawd/memory/2025-01-17.md
+   ```
+2. **（可选）** 在 `~/clawd/MEMORY.md` 里写几行说明或留给 AI 自己写；`memory/` 下可按 `YYYY-MM-DD.md` 放当日记忆。  
+3. 若你希望记忆目录在别处，需在 **clawdbot/Operator 的配置**里修改「数据目录」为实际路径（本项目不包含该配置，请在 clawdbot 文档或飞书集成侧查找）。
+
+创建上述文件后，再触发一次需要读记忆的对话，红色 ENOENT 会消失；飞书收发不受影响，只是之前读不到记忆内容。
+
 ### Android/Termux 上「从源码安装」失败
 
 在 Termux（Android）上选择 **「从源码安装」** 时，moltbot 的依赖 `@matrix-org/matrix-sdk-crypto-nodejs` 会在 postinstall 中报错 **Unsupported OS: android**，该原生模块不支持 Android。

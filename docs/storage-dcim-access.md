@@ -53,6 +53,32 @@ Bridge 应用当前没有被允许通过文件路径直接访问相册/外部存
 - **若用户未开「所有文件」**：请用户在手机上打开 **设置 → 应用 → Moltbot Bridge → 权限**，为 **「文件和媒体」** 或 **「所有文件」** 选择 **允许**，然后对手机路径使用 **`android_file_read`** / **`android_image_read`** 再试。
 - **替代**：若用户不想给「所有文件」权限，可改为让用户手动上传该照片到对话中，或使用系统相册分享到其他支持「仅选图」的应用再处理。
 
+## 飞书发送媒体 (sendMediaFeishu) EACCES
+
+当 AI 要「把手机上的照片发到飞书」时，飞书扩展会收到一个路径（如 `/storage/emulated/0/Pictures/xxx.jpg`），并用 Node 的 `readFileSync(path)` 读文件再上传。该读发生在 **Termux 里的 Node**，无法直接访问 `/storage/emulated/0/...`，因此会报 **EACCES**。
+
+### 可行做法
+
+1. **路径转换（推荐，在飞书扩展里改）**  
+   Termux 执行过 `termux-setup-storage` 后，共享存储会挂到 `~/storage/shared`，与 `/storage/emulated/0/` 对应同一块存储。  
+   在飞书扩展里（如 `~/.clawdbot/extensions/feishu/src/media.ts`）在 **`readFileSync(path)` 之前** 对 `path` 做一次转换，例如：
+
+   ```ts
+   // 在 readFileSync(path) 前添加：将手机存储路径转为 Termux 可读路径
+   if (path.startsWith('/storage/emulated/0/')) {
+     const home = process.env.HOME || '/data/data/com.termux/files/home';
+     path = home + '/storage/shared/' + path.slice('/storage/emulated/0/'.length);
+   }
+   ```
+
+   然后再用 `readFileSync(path)` 读文件。需确保在 Termux 里已运行过 `termux-setup-storage`，且 Termux 已授予存储权限。
+
+2. **先落到 Termux 再发**  
+   AI 流程改为：先用 **`android_file_read`** 按手机路径读出文件内容（如 base64），写入 Termux 可写目录（如 `~/tmp/xxx.jpg`），再让「发媒体」使用这个 **Termux 路径**（如 `~/tmp/xxx.jpg`）。飞书扩展不改也可用，但需要 Agent 或工具链支持「先读后写再传路径」。
+
+3. **确认 Termux 存储**  
+   在 Termux 里执行 `termux-setup-storage`，确认 `~/storage/shared/Pictures` 存在且能列出文件；若发的是该目录下的文件，用上面的路径转换即可。
+
 ## 相关文档
 
 - [permission-guide.md](permission-guide.md) — 权限说明与「按路径读取文件」实现建议
