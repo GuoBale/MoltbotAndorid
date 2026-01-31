@@ -229,6 +229,10 @@ export class AndroidBridgeClient {
     return this.request('POST', '/calendar/events', event);
   }
 
+  async deleteCalendarEvent(eventId: string): Promise<{ deleted: boolean; id: string; rowsAffected?: number }> {
+    return this.request('DELETE', `/calendar/events/${encodeURIComponent(eventId)}`);
+  }
+
   // ========== SMS API ==========
 
   async getSms(params?: {
@@ -477,7 +481,13 @@ export class AndroidBridgeClient {
     return this.request('GET', '/notification/channels');
   }
 
-  async checkNotificationAccess(): Promise<{ enabled: boolean; serviceName: string }> {
+  async checkNotificationAccess(): Promise<{
+    enabled: boolean;
+    serviceName: string;
+    appName?: string;
+    reason?: string;
+    solution?: string;
+  }> {
     return this.request('GET', '/notification/access');
   }
 

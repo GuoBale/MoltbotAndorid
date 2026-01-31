@@ -1,5 +1,6 @@
 package com.moltbot.bridge.api
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -147,7 +148,11 @@ class IntentApi(context: Context) : BaseApi(context) {
         val number = json["number"]?.jsonPrimitive?.contentOrNull
             ?: return ApiResponse.invalidParams("Missing 'number' field")
 
-        val intent = Intent(Intent.ACTION_DIAL).apply {
+        // 有 CALL_PHONE 权限时直接拨打电话（ACTION_CALL），否则仅打开拨号界面（ACTION_DIAL）
+        val hasCallPermission = checkPermission(Manifest.permission.CALL_PHONE)
+        val action = if (hasCallPermission) Intent.ACTION_CALL else Intent.ACTION_DIAL
+
+        val intent = Intent(action).apply {
             data = Uri.parse("tel:$number")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -157,6 +162,10 @@ class IntentApi(context: Context) : BaseApi(context) {
             val data = buildJsonObject {
                 put("dialed", true)
                 put("number", number)
+                put("callPlaced", hasCallPermission)
+                if (!hasCallPermission) {
+                    put("note", "无拨打电话权限，已打开拨号界面，请在手机上点击拨打键。授予 CALL_PHONE 权限后可自动拨出。")
+                }
             }
             success(data)
         } catch (e: Exception) {

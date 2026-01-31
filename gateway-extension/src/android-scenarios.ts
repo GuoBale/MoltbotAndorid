@@ -243,7 +243,7 @@ export function generateSystemPrompt(): string {
 - 系统：android_device_info、android_battery_status、android_network_status、android_storage_info、android_root_status
 - 通讯：android_contacts_list、android_contacts_get、android_sms_list、android_sms_send、android_calllog_list、android_calllog_stats、android_dial
 - 应用：android_apps_list、android_app_info、android_app_launch、android_app_shortcut_open（微信扫一扫/支付宝付款码等）
-- 日历：android_calendar_list、android_calendar_events、android_calendar_create_event
+- 日历：android_calendar_list、android_calendar_events、android_calendar_create_event、android_calendar_delete_event
 - 剪贴板/TTS/分享：android_clipboard_get、android_clipboard_set、android_tts_speak、android_share、android_open_url
 - 位置：android_location_current、android_location_last、android_geocode、android_reverse_geocode
 - 音量/闹钟/勿扰：android_volume_get、android_volume_set、android_ringer_mode、android_alarm_set、android_timer_set、android_dnd

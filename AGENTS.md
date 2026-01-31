@@ -37,6 +37,7 @@ Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Androi
 - `android_calendar_list` - 日历列表
 - `android_calendar_events` - 日历事件
 - `android_calendar_create_event` - 创建事件
+- `android_calendar_delete_event` - 删除事件
 
 ### 剪贴板 / TTS
 - `android_clipboard_get` - 读取剪贴板

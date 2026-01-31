@@ -53,8 +53,11 @@ fun BridgeMainScreen() {
         add(Manifest.permission.READ_CONTACTS)
         // 通话记录
         add(Manifest.permission.READ_CALL_LOG)
+        // 拨打电话（用于 android_dial 直接拨出）
+        add(Manifest.permission.CALL_PHONE)
         // 短信
         add(Manifest.permission.READ_SMS)
+        add(Manifest.permission.SEND_SMS)
         // 日历
         add(Manifest.permission.READ_CALENDAR)
         add(Manifest.permission.WRITE_CALENDAR)

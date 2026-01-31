@@ -1,8 +1,10 @@
 package com.moltbot.bridge.api
 
 import android.Manifest
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.provider.CalendarContract
 import com.moltbot.bridge.protocol.ApiResponse
 import kotlinx.serialization.json.*
@@ -24,6 +26,15 @@ class CalendarApi(context: Context) : BaseApi(context) {
             method == "POST" && path == "/events" -> {
                 requirePermission(Manifest.permission.WRITE_CALENDAR)?.let { return it }
                 createEvent(body)
+            }
+            method == "DELETE" && path.startsWith("/events/") -> {
+                requirePermission(Manifest.permission.WRITE_CALENDAR)?.let { return it }
+                val eventId = path.removePrefix("/events/").trim()
+                if (eventId.isNotEmpty()) deleteEvent(eventId) else ApiResponse.invalidParams("Missing event id")
+            }
+            method == "POST" && path == "/events/delete" -> {
+                requirePermission(Manifest.permission.WRITE_CALENDAR)?.let { return it }
+                deleteEventByBody(body)
             }
             method == "GET" && path == "/calendars" -> {
                 requirePermission(Manifest.permission.READ_CALENDAR)?.let { return it }
@@ -184,6 +195,40 @@ class CalendarApi(context: Context) : BaseApi(context) {
         } catch (e: Exception) {
             ApiResponse.error("CREATE_FAILED", e.message ?: "Failed to create event")
         }
+    }
+
+    private fun deleteEvent(eventId: String): ApiResponse {
+        val id = eventId.toLongOrNull()
+            ?: return ApiResponse.invalidParams("Invalid event id: $eventId")
+
+        return try {
+            val uri: Uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id)
+            val deleted = context.contentResolver.delete(uri, null, null)
+
+            val data = buildJsonObject {
+                put("deleted", deleted > 0)
+                put("id", eventId)
+                put("rowsAffected", deleted)
+            }
+            if (deleted > 0) success(data)
+            else ApiResponse.error("NOT_FOUND", "Event not found or already deleted: $eventId")
+        } catch (e: Exception) {
+            ApiResponse.error("DELETE_FAILED", e.message ?: "Failed to delete event")
+        }
+    }
+
+    private fun deleteEventByBody(body: String?): ApiResponse {
+        if (body.isNullOrBlank()) {
+            return ApiResponse.invalidParams("Missing request body")
+        }
+        val json = try {
+            Json.parseToJsonElement(body).jsonObject
+        } catch (e: Exception) {
+            return ApiResponse.invalidParams("Invalid JSON body")
+        }
+        val eventId = json["id"]?.jsonPrimitive?.contentOrNull
+            ?: return ApiResponse.invalidParams("Missing 'id' field")
+        return deleteEvent(eventId)
     }
 
     private fun getCalendarName(calendarId: Long): String {

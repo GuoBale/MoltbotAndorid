@@ -8,6 +8,8 @@ import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
 class BridgeServer(
     private val context: Context,
@@ -16,6 +18,7 @@ class BridgeServer(
 
     companion object {
         private const val TAG = "BridgeServer"
+        private const val MIME_JSON_UTF8 = "application/json; charset=utf-8"
     }
 
     private val json = Json { 
@@ -93,9 +96,8 @@ class BridgeServer(
                 is ApiResponse.Error -> result
             }
 
-            newFixedLengthResponse(
+            createUtf8Response(
                 if (result is ApiResponse.Success) Response.Status.OK else getErrorStatus(result),
-                "application/json",
                 json.encodeToString(response)
             )
         } catch (e: Exception) {
@@ -106,12 +108,20 @@ class BridgeServer(
                     message = e.message ?: "Unknown error"
                 )
             )
-            newFixedLengthResponse(
+            createUtf8Response(
                 Response.Status.INTERNAL_ERROR,
-                "application/json",
                 json.encodeToString(errorResponse)
             )
         }
+    }
+
+    /**
+     * 创建 UTF-8 编码的 JSON 响应
+     */
+    private fun createUtf8Response(status: Response.Status, jsonString: String): Response {
+        val bytes = jsonString.toByteArray(StandardCharsets.UTF_8)
+        val inputStream = ByteArrayInputStream(bytes)
+        return newFixedLengthResponse(status, MIME_JSON_UTF8, inputStream, bytes.size.toLong())
     }
 
     private fun handleRequest(session: IHTTPSession): ApiResponse {
@@ -148,11 +158,30 @@ class BridgeServer(
             params[key] = value
         }
 
-        // 解析请求体
+        // 解析请求体（确保 UTF-8 编码）
         val body = if (method == "POST" || method == "PUT" || method == "PATCH") {
-            val files = mutableMapOf<String, String>()
-            session.parseBody(files)
-            files["postData"] ?: session.queryParameterString
+            try {
+                val contentLength = session.headers["content-length"]?.toIntOrNull() ?: 0
+                if (contentLength > 0) {
+                    // 直接从 inputStream 读取原始字节，确保 UTF-8 解码
+                    val buffer = ByteArray(contentLength)
+                    var totalRead = 0
+                    while (totalRead < contentLength) {
+                        val read = session.inputStream.read(buffer, totalRead, contentLength - totalRead)
+                        if (read == -1) break
+                        totalRead += read
+                    }
+                    String(buffer, 0, totalRead, StandardCharsets.UTF_8)
+                } else {
+                    // 尝试使用 parseBody 方法
+                    val files = mutableMapOf<String, String>()
+                    session.parseBody(files)
+                    files["postData"]
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing body", e)
+                null
+            }
         } else null
 
         return runBlocking {

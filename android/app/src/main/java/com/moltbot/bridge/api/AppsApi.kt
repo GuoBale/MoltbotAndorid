@@ -162,10 +162,37 @@ class AppsApi(context: Context) : BaseApi(context) {
             ?: return ApiResponse.invalidParams("Missing 'package' field")
 
         val pm = context.packageManager
-        val intent = pm.getLaunchIntentForPackage(packageName)
-            ?: return ApiResponse.error("APP_LAUNCH_FAILED", "No launch intent for $packageName")
+        var intent = pm.getLaunchIntentForPackage(packageName)
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (intent == null) {
+            // 部分应用 getLaunchIntentForPackage 返回 null，尝试显式解析 LAUNCHER Activity
+            val mainIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+                setPackage(packageName)
+            }
+            val resolveInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.resolveActivity(mainIntent, PackageManager.ResolveInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.resolveActivity(mainIntent, 0)
+            }
+            if (resolveInfo != null) {
+                intent = Intent().apply {
+                    setClassName(packageName, resolveInfo.activityInfo.name)
+                }
+            }
+        }
+
+        if (intent == null) {
+            return ApiResponse.error("APP_LAUNCH_FAILED", "No launch intent for $packageName")
+        }
+
+        // 从后台/服务启动时需加以下 flag，才能把应用带到前台（否则可能只在后台启动）
+        intent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+            Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        )
 
         return try {
             context.startActivity(intent)

@@ -477,6 +477,26 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     },
   });
 
+  api.registerTool({
+    name: 'android_calendar_delete_event',
+    description: '删除 Android 日历中的指定事件。需要提供事件 ID（可通过 android_calendar_events 查询得到）',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: '要删除的事件 ID（如 7790、7791）' },
+      },
+      required: ['id'],
+    },
+    async execute(_id: string, params: { id: string }) {
+      try {
+        const result = await bridge.deleteCalendarEvent(params.id);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
   // ========== 剪贴板工具 ==========
 
   api.registerTool({
@@ -590,7 +610,7 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_dial',
-    description: '打开 Android 拨号界面',
+    description: '拨打电话。若有拨打电话权限则直接拨出；否则仅打开拨号界面并填入号码，需用户在手机上点击拨打键。返回中 callPlaced 为 true 表示已直接拨出，为 false 时请提示用户点击拨打或到设置中为 Bridge 授予「拨打电话」权限。',
     parameters: {
       type: 'object',
       properties: {
@@ -682,12 +702,12 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_location_current',
-    description: '获取 Android 设备当前位置（需要位置权限）',
+    description: `获取 Android 设备当前位置（需位置权限）。未指定 provider 时先试网络定位（室内更快），再试 GPS；超时后会尝试返回最后已知位置。室内或信号弱时可能超时，可先调用 android_location_last 获取上次位置，或传 timeout 增大超时（默认 20000 毫秒）。`,
     parameters: {
       type: 'object',
       properties: {
-        provider: { type: 'string', description: '位置提供者: gps, network' },
-        timeout: { type: 'number', description: '超时时间（毫秒），默认10000' },
+        provider: { type: 'string', description: '位置提供者: gps, network；不传则自动先网络后 GPS' },
+        timeout: { type: 'number', description: '超时时间（毫秒），默认 20000' },
       },
       required: [],
     },
@@ -1069,11 +1089,12 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
 
   api.registerTool({
     name: 'android_notification_access',
-    description: '检查通知访问权限状态，如果没有权限可以打开设置',
+    description: `检查通知访问权限状态。若 enabled 为 false，返回的 reason 和 solution 会说明原因和操作步骤。
+建议：未启用时先调用 openSettings: true 打开「通知访问」设置页，引导用户找到 Bridge/Moltbot Bridge 并关闭再重新开启开关、弹窗选「允许」。`,
     parameters: {
       type: 'object',
       properties: {
-        openSettings: { type: 'boolean', description: '是否打开通知设置页面' },
+        openSettings: { type: 'boolean', description: '为 true 时打开手机「通知访问」设置页，方便用户启用 Bridge' },
       },
       required: [],
     },
