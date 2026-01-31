@@ -213,6 +213,8 @@ WebSocket: ws://<device-ip>:18789
 - [Termux 配置](docs/termux-setup.md)
 - [相册/DCIM 访问权限](docs/storage-dcim-access.md)（读图 EACCES 时参考）
 - [Android Bridge 模型提示词](docs/android-bridge-prompt.md)（给飞书/Operator 的系统提示词）
+- [手机上如何使用这些 Skill](docs/skills-usage-on-phone.md)（在手机端使用每日播报、快捷操作等场景）
+- [Skill 加载说明](docs/skills-loading.md)（Cursor Skills 与 Clawdbot 插件场景如何加载）
 
 ## 目录说明
 
@@ -498,28 +500,28 @@ Bridge Service 需要以下 Android 权限：
 - 录音
 - 位置
 
-## AI Agent Skills
+## 手机端 Skill（仅手机上使用）
 
-本项目提供一系列预置的 AI Agent Skills，帮助快速完成手机操作任务。
+本项目提供一系列场景能力（每日播报、快捷操作、联系人分析等），**仅在手机上使用**：在连接该手机 Gateway 的客户端（Operator/飞书等）里用自然语言对话即可，**不需要在 Cursor 中加载或使用**。
 
-### 可用 Skills
+### 可用场景与触发词
 
-| Skill | 描述 | 触发词示例 |
-|-------|------|------------|
-| `android-smart-assistant` | 综合性手机智能助手 | "帮我操作手机" |
-| `android-daily-briefing` | 每日手机信息播报 | "早安"、"今天有什么事" |
-| `android-contact-intelligence` | 联系人智能分析 | "谁联系最多"、"失联提醒" |
-| `android-quick-actions` | 一句话快捷操作 | "微信扫一扫"、"打开手电筒" |
-| `android-photo-assistant` | 相册浏览与拍摄 | "看看相册"、"帮我拍照" |
-| `android-location-navigator` | 位置与导航服务 | "我在哪"、"导航到xxx" |
-| `android-automation-workflows` | 场景自动化工作流 | "睡觉模式"、"会议模式" |
-| `android-security-privacy` | 安全隐私检查 | "检查手机安全" |
+| 场景 | 触发词示例 |
+|------|------------|
+| 每日播报 | "早安"、"今天有什么事" |
+| 快捷操作 | "微信扫一扫"、"打开手电筒"、"设闹钟" |
+| 联系人分析 | "谁联系最多"、"失联提醒" |
+| 自动化工作流 | "睡觉模式"、"会议模式" |
+| 相册助手 | "看看相册"、"帮我拍照" |
+| 位置导航 | "我在哪"、"导航到xxx" |
+| 安全隐私 | "检查手机安全" |
 
 ### 使用方式
 
-Skills 位于 `.cursor/skills/` 目录，在 Cursor IDE 中自动加载。当用户请求相关任务时，AI Agent 会自动应用对应的 skill 来完成任务。
+1. **手机端**：运行 Bridge 应用 + 在 Termux 里执行 `./scripts/start-gateway.sh`（场景已内置在插件中，随 Gateway 加载）。
+2. **客户端**：Operator/飞书等连接 `ws://<手机 IP>:18789`，在对话里直接说「早安」「打开微信扫一扫」等即可。
 
-详细说明见 [AGENTS.md](AGENTS.md) 和 [.cursor/skills/README.md](.cursor/skills/README.md)。
+详见 [手机上如何使用这些 Skill](docs/skills-usage-on-phone.md)、[Skill 加载说明](docs/skills-loading.md)。
 
 ## 许可证
 

@@ -1,81 +1,12 @@
 # Android Bridge Gateway - Agent 配置
 
-本文件配置 AI Agent 在此项目中的行为和可用技能。
+本文件说明本项目中的工具与场景能力。**这些 Skill 仅在手机上使用**（通过连接手机 Gateway 的 Operator/飞书等客户端），**不在 Cursor 中加载或使用**。
 
 ## 项目概述
 
-Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Android 设备的系统 API 和应用。
+Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Android 设备的系统 API 和应用。场景（每日播报、快捷操作、联系人分析等）内置在 **gateway-extension** 插件中，随 Gateway 在手机上启动时加载；用户在 Operator/飞书中对话即可触发。
 
-## 可用 Skills
-
-以下 skill 提供手机操作的专业能力，当用户请求相关任务时自动触发。
-
-<skills_system priority="1">
-
-### 使用方式
-
-当用户请求与手机操作相关的任务时，读取对应的 skill 文件获取详细指导：
-
-```bash
-# 读取 skill
-Read(".cursor/skills/<skill-name>/SKILL.md")
-```
-
-### 可用 Skills 列表
-
-<available_skills>
-
-<skill>
-<name>android-smart-assistant</name>
-<description>综合性 Android 手机智能助手，通过 Gateway 远程控制手机完成各类任务。包含日程管理、通讯录查询、快捷操作、文件管理、手机状态监控等场景。当用户需要操作手机、查询手机信息、设置提醒、管理联系人时使用。</description>
-<location>.cursor/skills/android-smart-assistant/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-daily-briefing</name>
-<description>每日手机信息播报，汇总今日日程、未读短信、未接来电、电池状态等关键信息。当用户说"今天有什么事"、"早安"、"每日播报"、"手机状态汇总"时触发。</description>
-<location>.cursor/skills/android-daily-briefing/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-contact-intelligence</name>
-<description>智能联系人分析与管理，分析通讯频率、识别重要联系人、整理重复联系人、生成联系人报告。当用户需要"分析联系人"、"谁联系最多"、"整理通讯录"、"重要联系人"时使用。</description>
-<location>.cursor/skills/android-contact-intelligence/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-quick-actions</name>
-<description>手机快捷操作集合，一句话完成常用操作如打开微信扫一扫、支付宝付款、调节音量、开关手电筒、设置闹钟等。当用户说"扫一扫"、"付款码"、"打开手电筒"、"调音量"、"设闹钟"时使用。</description>
-<location>.cursor/skills/android-quick-actions/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-photo-assistant</name>
-<description>手机相册助手，浏览查看手机照片、拍摄新照片、分析图片内容。当用户说"看看相册"、"最近的照片"、"帮我拍张照"、"这张图是什么"时使用。</description>
-<location>.cursor/skills/android-photo-assistant/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-location-navigator</name>
-<description>手机位置与导航服务，获取当前位置、地址查询、地理编码、导航到目的地。当用户说"我在哪"、"当前位置"、"导航到"、"这个地址在哪"时使用。</description>
-<location>.cursor/skills/android-location-navigator/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-automation-workflows</name>
-<description>手机自动化工作流，组合多个操作完成复杂任务如睡前模式、起床流程、外出准备等。当用户说"睡觉模式"、"起床流程"、"外出准备"、"回家模式"时使用。</description>
-<location>.cursor/skills/android-automation-workflows/SKILL.md</location>
-</skill>
-
-<skill>
-<name>android-security-privacy</name>
-<description>手机安全与隐私检查，检查应用权限、未知应用、存储安全、系统状态等。当用户说"检查手机安全"、"有没有可疑应用"、"隐私检查"、"手机健康"时使用。</description>
-<location>.cursor/skills/android-security-privacy/SKILL.md</location>
-</skill>
-
-</available_skills>
-
-</skills_system>
+详见：[手机上如何使用这些 Skill](docs/skills-usage-on-phone.md)、[Skill 加载说明](docs/skills-loading.md)。
 
 ## Android Bridge 工具
 
