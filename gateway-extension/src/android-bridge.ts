@@ -1433,5 +1433,64 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     },
   });
 
+  // ========== 常用 App 快捷打开（深链接，非官方 API） ==========
+
+  api.registerTool({
+    name: 'android_app_shortcuts_list',
+    description: '列出支持的常用 App 及可执行动作（微信/支付宝/淘宝/京东/美团/抖音/小红书/B站/百度地图/高德地图等）',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.listAppShortcuts();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_app_shortcuts_installed',
+    description: '查询手机已安装的、支持快捷打开的常用 App',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getInstalledAppShortcuts();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_app_shortcut_open',
+    description: '通过深链接打开常用 App 或指定页面。app: wechat/alipay/taobao/jd/meituan/douyin/xiaohongshu/bilibili/baidu_map/amap 等。action: launch/scan/paycode/moments/search 等，视 app 而定。query 用于淘宝等搜索。',
+    parameters: {
+      type: 'object',
+      properties: {
+        app: {
+          type: 'string',
+          description: 'App 标识: wechat, qq, alipay, taobao, tmall, jd, meituan, douyin, xiaohongshu, bilibili, baidu_map, amap',
+        },
+        action: {
+          type: 'string',
+          description: '动作: launch(打开), scan(扫一扫), paycode(付款码), moments(朋友圈), search(搜索), transfer(转账) 等',
+        },
+        query: { type: 'string', description: '搜索关键词，用于 taobao search 等' },
+        url: { type: 'string', description: '自定义 URL，action=open_url 时使用' },
+      },
+      required: ['app'],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.openAppShortcut(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
   console.log('[Android Bridge] Registered Android tools');
 }

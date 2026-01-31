@@ -762,6 +762,25 @@ export class AndroidBridgeClient {
   async resumeRecording(): Promise<any> {
     return this.request('POST', '/recorder/resume', {});
   }
+
+  // ========== 常用 App 快捷打开 (AppShortcuts API) ==========
+
+  async listAppShortcuts(): Promise<any> {
+    return this.request('GET', '/appshortcuts');
+  }
+
+  async getInstalledAppShortcuts(): Promise<any> {
+    return this.request('GET', '/appshortcuts/installed');
+  }
+
+  async openAppShortcut(params: {
+    app: string;
+    action?: string;
+    url?: string;
+    query?: string;
+  }): Promise<any> {
+    return this.request('POST', '/appshortcuts/open', params);
+  }
 }
 
 // ========== 新增类型定义 ==========

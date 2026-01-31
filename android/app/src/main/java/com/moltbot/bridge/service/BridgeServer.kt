@@ -69,6 +69,7 @@ class BridgeServer(
         // 相机与录音
         "camera" to CameraApi(context),
         "recorder" to RecorderApi(context),
+        "appshortcuts" to AppShortcutsApi(context),
     )
 
     override fun serve(session: IHTTPSession): Response {
