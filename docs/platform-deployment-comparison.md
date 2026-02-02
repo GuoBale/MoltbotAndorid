@@ -89,6 +89,45 @@
 
 ---
 
+## 5.1 工具调用对比
+
+Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 与 **moltbot 内置/通用工具**（exec、read、web、browser 等）。二者**执行环境与操作对象**不同，按平台对比如下。
+
+### Android Bridge 工具（android_*）
+
+由本项目 **gateway-extension** 在 Gateway 启动时注册，调用手机上的 **Bridge Service**（HTTP :18800）执行，**操作对象始终是「Bridge 所在的那台手机」**。
+
+| 维度 | Mac OS | Linux | Windows (WSL2) | Android (Termux) |
+|------|--------|--------|-----------------|-------------------|
+| **android_* 是否可用** | ✅ 需配置 `ANDROID_BRIDGE_HOST=<手机IP>`，且该手机已装并运行 Bridge | ✅ 同左 | ✅ 同左 | ✅ 本机 Bridge（默认 localhost:18800），无需改 host |
+| **操作对象** | **远程那台手机**（与 PC 同网段的 Android 设备） | 同左 | 同左 | **本机手机**（Gateway 与 Bridge 同机） |
+| **工具类别** | 系统 / 通讯 / 应用 / 日历 / 剪贴板·TTS / 位置 / 音量·闹钟 / 通知 / 硬件 / 文件 / 相机·录音等（见 [AGENTS.md](../AGENTS.md)、[api-reference.md](api-reference.md)） | 同左 | 同左 | 同左 |
+| **权限与错误** | `PERMISSION_DENIED` 等来自**手机端 Bridge 权限**，与 Mac 无关；需在手机上为 Bridge 授权 | 同左 | 同左 | 同左；需在**本机**为 Bridge App 授权 |
+| **场景工具** | 每日播报、快捷操作、联系人分析、睡觉模式、相册助手、位置导航、安全隐私等（`android_scenario_guide`）依赖 android_*，可用性与上一致 | 同左 | 同左 | 同左 |
+
+### Gateway 内置/通用工具（exec、read、web、browser 等）
+
+由 moltbot 提供，在 **Gateway 所在进程/环境** 执行，**操作对象是「运行 Gateway 的那台机器」**。
+
+| 维度 | Mac OS | Linux | Windows (WSL2) | Android (Termux) |
+|------|--------|--------|-----------------|-------------------|
+| **exec（执行命令）** | ✅ 在**本机** shell 执行 | ✅ 在**本机** shell 执行 | ✅ 在 **WSL2 内** shell 执行 | ⚠️ 在 **Termux 内** shell 执行（受限环境，无完整系统权限） |
+| **read / 本机文件读写** | ✅ 读**本机**路径 | ✅ 同左 | ✅ 读 **WSL2 内**路径 | ✅ 仅能读 **Termux 可访问**路径；**不可**用本机 read 读手机路径（如 `/storage/emulated/0/DCIM/...`），会 EACCES，须用 `android_file_read` / `android_image_read` |
+| **web / browser / Playwright** | ✅ 在本机/桌面环境运行 | ✅ 同左 | ✅ 在 WSL2 内（有图形时可跑浏览器） | ⚠️ 受 Playwright 与 Termux 限制，见「功能可用性」 |
+| **操作对象** | **本机（Mac）** | **本机（Linux）** | **WSL2 内 Linux** | **本机（Termux 环境）** |
+
+### 工具调用规则与排查
+
+| 现象 | 原因 | 处理 |
+|------|------|------|
+| Agent 看不到任何 android_* 工具 | 未加载扩展或未连到带扩展的 Gateway | 确认 `plugins.load.paths` 含 android-bridge.js、Gateway 已加载扩展；Operator 连的是 `ws://<运行 start-gateway 的主机>:18789` |
+| android_* 返回 PERMISSION_DENIED | **手机端** Bridge 未获对应权限 | 在**手机**上打开 Bridge Service 应用，授予联系人/短信/存储等所需权限 |
+| 读手机路径报 EACCES | 误用**本机** read/image 工具读 `/storage/emulated/0/...` | 对手机路径一律用 **`android_file_read`** 或 **`android_image_read`**，由 Bridge 在手机上读 |
+| android_* 请求超时或连接失败 | Bridge 未启动或 Gateway 无法访问 Bridge | 确认 Bridge App 已启动；Mac/Linux/WSL2 上检查 `ANDROID_BRIDGE_HOST`/端口与网络；Android 上检查 localhost:18800 可达 |
+| exec / 本机 read 在 Android 上行为异常 | 执行环境为 Termux，非完整 Linux | 复杂命令或系统路径需在 Termux 内可用；手机文件仍通过 android_* 访问 |
+
+---
+
 ## 6. 配置与存储
 
 | 维度 | Mac OS | Linux | Android (Termux) |
