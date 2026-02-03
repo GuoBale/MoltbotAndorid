@@ -58,6 +58,8 @@ fun BridgeMainScreen() {
         // 短信
         add(Manifest.permission.READ_SMS)
         add(Manifest.permission.SEND_SMS)
+        // 邮件账户列表
+        add(Manifest.permission.GET_ACCOUNTS)
         // 日历
         add(Manifest.permission.READ_CALENDAR)
         add(Manifest.permission.WRITE_CALENDAR)

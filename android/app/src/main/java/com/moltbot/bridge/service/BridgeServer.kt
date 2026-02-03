@@ -36,6 +36,7 @@ class BridgeServer(
         "contacts" to ContactsApi(context),
         "sms" to SmsApi(context),
         "calllog" to CallLogApi(context),
+        "email" to EmailApi(context),
         
         // 应用与媒体
         "apps" to AppsApi(context),
@@ -46,6 +47,7 @@ class BridgeServer(
         "clipboard" to ClipboardApi(context),
         "tts" to TtsApi(context),
         "intent" to IntentApi(context),
+        "browser" to BrowserApi(context),
         
         // 位置与传感器
         "location" to LocationApi(context),

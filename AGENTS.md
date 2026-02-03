@@ -27,6 +27,11 @@ Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Androi
 - `android_calllog_list` - 通话记录
 - `android_dial` - 拨打电话
 
+### 邮件
+- `android_email_accounts` - 邮件账户列表
+- `android_email_compose` - 打开写邮件界面
+- `android_email_open_inbox` - 打开收件箱
+
 ### 应用
 - `android_apps_list` - 应用列表
 - `android_app_info` - 应用详情
@@ -45,6 +50,12 @@ Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Androi
 - `android_tts_speak` - 语音播报
 - `android_share` - 分享内容
 - `android_open_url` - 打开 URL
+
+### 浏览器
+- `android_browser_list` - 列出可用的浏览器
+- `android_browser_open` - 打开 URL（可指定浏览器包名）
+- `android_browser_launch` - 打开默认浏览器
+- `android_browser_incognito` - 无痕模式打开 URL（需 Chrome）
 
 ### 位置
 - `android_location_current` - 当前位置

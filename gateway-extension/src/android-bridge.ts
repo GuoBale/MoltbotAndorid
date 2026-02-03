@@ -325,6 +325,60 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     },
   });
 
+  // ========== 邮件工具 ==========
+
+  api.registerTool({
+    name: 'android_email_accounts',
+    description: '获取 Android 设备上已配置的邮件账户列表（Gmail、系统邮件、Outlook 等）。需要 GET_ACCOUNTS 权限。注意：Android 无系统级收件箱接口，无法读取邮件列表内容。',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getEmailAccounts();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_email_compose',
+    description: '在手机上打开写邮件界面，可预填收件人、主题、正文、抄送。会弹出邮件应用选择器。',
+    parameters: {
+      type: 'object',
+      properties: {
+        to: { type: 'string', description: '收件人邮箱' },
+        subject: { type: 'string', description: '邮件主题' },
+        body: { type: 'string', description: '邮件正文' },
+        text: { type: 'string', description: '邮件正文（与 body 二选一）' },
+        cc: { type: 'string', description: '抄送邮箱' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      try {
+        const result = await bridge.composeEmail(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_email_open_inbox',
+    description: '打开手机默认邮件应用的收件箱。若无默认邮件应用会弹出应用选择器。',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.openEmailInbox();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
   // ========== 日历工具 ==========
 
   api.registerTool({
@@ -641,6 +695,77 @@ function registerAndroidTools(api: any, bridge: AndroidBridgeClient): void {
     async execute(_id: string, params: { url: string }) {
       try {
         const result = await bridge.openUrl(params.url);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  // ========== 浏览器工具 ==========
+
+  api.registerTool({
+    name: 'android_browser_list',
+    description: '列出 Android 设备上可打开网页的应用（浏览器），含包名与是否 Chrome',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.getBrowsers();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_browser_open',
+    description: '在浏览器中打开 URL。可传 package 指定浏览器（如 com.android.chrome）；不传则用系统默认。url 可不带 https:// 前缀，会自动补全。',
+    parameters: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: '要打开的 URL' },
+        package: { type: 'string', description: '可选，浏览器包名（如 com.android.chrome）' },
+      },
+      required: ['url'],
+    },
+    async execute(_id: string, params: { url: string; package?: string }) {
+      try {
+        const result = await bridge.browserOpen(params);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_browser_launch',
+    description: '打开默认浏览器（不打开具体 URL）',
+    parameters: { type: 'object', properties: {}, required: [] },
+    async execute(_id: string, _params: any) {
+      try {
+        const result = await bridge.browserLaunch();
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: `Error: ${error.message}` }] };
+      }
+    },
+  });
+
+  api.registerTool({
+    name: 'android_browser_incognito',
+    description: '以无痕/隐私模式打开 URL。需要设备已安装 Chrome；未安装会返回错误。可选参数 url，默认 about:blank',
+    parameters: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: '要打开的 URL，默认 about:blank' },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: { url?: string }) {
+      try {
+        const result = await bridge.browserIncognito(params);
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }] };

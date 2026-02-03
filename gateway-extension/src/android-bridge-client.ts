@@ -253,6 +253,30 @@ export class AndroidBridgeClient {
     return this.request('POST', '/sms/send', params);
   }
 
+  // ========== Email API ==========
+
+  async getEmailAccounts(): Promise<{
+    accounts: Array<{ name: string; type: string; typeLabel: string }>;
+    total: number;
+    note?: string;
+  }> {
+    return this.request('GET', '/email/accounts');
+  }
+
+  async composeEmail(params: {
+    to?: string;
+    subject?: string;
+    body?: string;
+    text?: string;
+    cc?: string;
+  }): Promise<{ opened: boolean; to?: string; subject?: string }> {
+    return this.request('POST', '/email/compose', params);
+  }
+
+  async openEmailInbox(): Promise<{ opened: boolean; note?: string }> {
+    return this.request('POST', '/email/open_inbox', {});
+  }
+
   // ========== Clipboard API ==========
 
   async getClipboard(): Promise<{
@@ -308,6 +332,27 @@ export class AndroidBridgeClient {
 
   async openUrl(url: string): Promise<{ opened: boolean; url: string }> {
     return this.request('POST', '/intent/open', { url });
+  }
+
+  // ========== Browser API ==========
+
+  async getBrowsers(): Promise<{
+    browsers: Array<{ packageName: string; name: string; isChrome: boolean }>;
+    total: number;
+  }> {
+    return this.request('GET', '/browser/apps');
+  }
+
+  async browserOpen(params: { url: string; package?: string }): Promise<{ opened: boolean; url: string; package?: string }> {
+    return this.request('POST', '/browser/open', params);
+  }
+
+  async browserLaunch(): Promise<{ opened: boolean; package?: string; note?: string }> {
+    return this.request('POST', '/browser/launch', {});
+  }
+
+  async browserIncognito(params?: { url?: string }): Promise<{ opened: boolean; url: string; incognito: boolean }> {
+    return this.request('POST', '/browser/incognito', params ?? {});
   }
 
   // ========== Call Log API ==========
