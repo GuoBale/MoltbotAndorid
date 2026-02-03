@@ -20,4 +20,4 @@
 }
 
 # Keep API response classes
--keep class com.moltbot.bridge.protocol.** { *; }
+-keep class com.openclaw.bridge.protocol.** { *; }

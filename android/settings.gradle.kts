@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MoltbotBridge"
+rootProject.name = "OpenClawBridge"
 include(":app")

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 启动 clawdbot Gateway
+# 启动 openclaw Gateway
 #
 
 # 颜色定义
@@ -19,7 +19,7 @@ if [ -d "/data/data/com.termux/files/usr" ] || [ -n "$TERMUX_VERSION" ]; then
 fi
 
 echo "========================================"
-echo "  启动 clawdbot Gateway"
+echo "  启动 openclaw Gateway"
 echo "========================================"
 echo ""
 
@@ -135,12 +135,12 @@ if [ -n "$PORT_PID" ]; then
     [ -n "$PORT_PID" ] && kill -9 $PORT_PID 2>/dev/null || true
     sleep 1
 fi
-# 清除 clawdbot gateway 锁/pid 文件，避免 "gateway already running (pid ...); lock timeout"
-CLAWDBOT_DIR="${CLAWDBOT_CONFIG_DIR:-$HOME/.clawdbot}"
-for lock in "$CLAWDBOT_DIR"/gateway.pid "$CLAWDBOT_DIR"/gateway.lock "$CLAWDBOT_DIR"/.gateway.lock "$CLAWDBOT_DIR"/run/gateway.pid; do
+# 清除 openclaw gateway 锁/pid 文件，避免 "gateway already running (pid ...); lock timeout"
+OPENCLAW_DIR="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
+for lock in "$OPENCLAW_DIR"/gateway.pid "$OPENCLAW_DIR"/gateway.lock "$OPENCLAW_DIR"/.gateway.lock "$OPENCLAW_DIR"/run/gateway.pid; do
     [ -e "$lock" ] && rm -f "$lock" && echo -e "${YELLOW}已移除陈旧锁文件: $lock${NC}"
 done
-[ -d "$CLAWDBOT_DIR/run" ] && rmdir "$CLAWDBOT_DIR/run" 2>/dev/null || true
+[ -d "$OPENCLAW_DIR/run" ] && rmdir "$OPENCLAW_DIR/run" 2>/dev/null || true
 
 echo "启动 Gateway (端口: ${GATEWAY_PORT})..."
 echo ""
@@ -148,74 +148,74 @@ echo "按 Ctrl+C 停止"
 echo "========================================"
 echo ""
 
-# 启动 Gateway：查找 clawdbot
-CLAWDBOT_CMD=""
+# 启动 Gateway：查找 openclaw
+OPENCLAW_CMD=""
 ON_ANDROID="${ON_ANDROID:-}"
 [ "$(uname -o 2>/dev/null)" = "Android" ] || [ -n "$TERMUX_VERSION" ] && ON_ANDROID=1
 
-# 优先检测 clawdbot 命令是否可用（包括 Android）
-# 设置 CLAWDBOT_DISABLE_ROUTE_FIRST=1 后，clawdbot 命令在 Android 上也能正常使用 gateway run
-if command -v clawdbot &> /dev/null; then
-    CLAWDBOT_CMD="clawdbot"
+# 优先检测 openclaw 命令是否可用（包括 Android）
+# 设置 OPENCLAW_DISABLE_ROUTE_FIRST=1 后，openclaw 命令在 Android 上也能正常使用 gateway run
+if command -v openclaw &> /dev/null; then
+    OPENCLAW_CMD="openclaw"
 fi
 
-# 如果 clawdbot 命令不可用，尝试从 npm 全局目录查找
-if [ -z "$CLAWDBOT_CMD" ]; then
+# 如果 openclaw 命令不可用，尝试从 npm 全局目录查找
+if [ -z "$OPENCLAW_CMD" ]; then
     NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/clawdbot" ]; then
-        CLAWDBOT_CMD="$NPM_PREFIX/bin/clawdbot"
+    if [ -n "$NPM_PREFIX" ] && [ -x "$NPM_PREFIX/bin/openclaw" ]; then
+        OPENCLAW_CMD="$NPM_PREFIX/bin/openclaw"
     fi
 fi
 
 # Termux 自定义全局目录
-if [ -z "$CLAWDBOT_CMD" ] && [ -x "$HOME/.npm-global/bin/clawdbot" ]; then
-    CLAWDBOT_CMD="$HOME/.npm-global/bin/clawdbot"
+if [ -z "$OPENCLAW_CMD" ] && [ -x "$HOME/.npm-global/bin/openclaw" ]; then
+    OPENCLAW_CMD="$HOME/.npm-global/bin/openclaw"
 fi
 
 # Termux 默认全局目录
-if [ -z "$CLAWDBOT_CMD" ]; then
+if [ -z "$OPENCLAW_CMD" ]; then
     TERMUX_PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
-    if [ -x "$TERMUX_PREFIX/bin/clawdbot" ]; then
-        CLAWDBOT_CMD="$TERMUX_PREFIX/bin/clawdbot"
+    if [ -x "$TERMUX_PREFIX/bin/openclaw" ]; then
+        OPENCLAW_CMD="$TERMUX_PREFIX/bin/openclaw"
     fi
 fi
 
 # 从源码运行
-if [ -z "$CLAWDBOT_CMD" ] && [ -d "$HOME/clawdbot" ]; then
-    if [ -x "$HOME/clawdbot/node_modules/.bin/clawdbot" ]; then
-        CLAWDBOT_CMD="$HOME/clawdbot/node_modules/.bin/clawdbot"
+if [ -z "$OPENCLAW_CMD" ] && [ -d "$HOME/openclaw" ]; then
+    if [ -x "$HOME/openclaw/node_modules/.bin/openclaw" ]; then
+        OPENCLAW_CMD="$HOME/openclaw/node_modules/.bin/openclaw"
     fi
 fi
 
 # 最后尝试 npx（仅非 Android）
-if [ -z "$CLAWDBOT_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g clawdbot --depth=0 &>/dev/null; then
-    CLAWDBOT_CMD="npx clawdbot"
+if [ -z "$OPENCLAW_CMD" ] && [ -z "$ON_ANDROID" ] && npm list -g openclaw --depth=0 &>/dev/null; then
+    OPENCLAW_CMD="npx openclaw"
 fi
 
-if [ -n "$CLAWDBOT_CMD" ]; then
+if [ -n "$OPENCLAW_CMD" ]; then
     # Android 上禁用「路由优先」，避免 gateway 被 route 到 service/install 逻辑
-    [ -n "$ON_ANDROID" ] && export CLAWDBOT_DISABLE_ROUTE_FIRST=1
-    echo -e "${YELLOW}执行: $CLAWDBOT_CMD gateway run --port ${GATEWAY_PORT} --verbose${NC}"
-    exec $CLAWDBOT_CMD gateway run --port "${GATEWAY_PORT}" --verbose
+    [ -n "$ON_ANDROID" ] && export OPENCLAW_DISABLE_ROUTE_FIRST=1
+    echo -e "${YELLOW}执行: $OPENCLAW_CMD gateway run --port ${GATEWAY_PORT} --verbose${NC}"
+    exec $OPENCLAW_CMD gateway run --port "${GATEWAY_PORT}" --verbose
 else
-    echo -e "${RED}错误: clawdbot 未安装或无法解析入口${NC}"
+    echo -e "${RED}错误: openclaw 未安装或无法解析入口${NC}"
     echo ""
-    echo "当前未检测到 clawdbot 全局包（需存在 dist/cli/run-main.js 或 dist/cli.js）。"
+    echo "当前未检测到 openclaw 全局包（需存在 dist/cli/run-main.js 或 dist/cli.js）。"
     echo "请先安装："
-    echo "  ./scripts/install-gateway.sh   # 推荐，会安装 clawdbot 并配置扩展"
+    echo "  ./scripts/install-gateway.sh   # 推荐，会安装 openclaw 并配置扩展"
     echo "或："
-    echo "  npm install -g clawdbot"
+    echo "  npm install -g openclaw"
     echo ""
     if [ -n "$ON_ANDROID" ]; then
         NPM_ROOT="$(npm root -g 2>/dev/null | tr -d '\n\r')"
         echo "当前 npm 全局目录: ${NPM_ROOT:-（无法获取）}"
-        if [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/clawdbot" ]; then
-            echo -e "${YELLOW}若已安装于此目录，可尝试: node $NPM_ROOT/clawdbot/dist/cli/run-main.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
+        if [ -n "$NPM_ROOT" ] && [ -d "$NPM_ROOT/openclaw" ]; then
+            echo -e "${YELLOW}若已安装于此目录，可尝试: node $NPM_ROOT/openclaw/dist/cli/run-main.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
         else
-            echo "安装后可用以下命令确认路径: npm root -g && ls \$(npm root -g)/clawdbot/dist/cli/"
+            echo "安装后可用以下命令确认路径: npm root -g && ls \$(npm root -g)/openclaw/dist/cli/"
         fi
     else
-        echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g clawdbot --parseable | tail -1)/dist/cli.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
+        echo -e "${YELLOW}若已安装但找不到命令，可尝试: node \$(npm list -g openclaw --parseable | tail -1)/dist/cli.js gateway run --port ${GATEWAY_PORT} --verbose${NC}"
     fi
     exit 1
 fi

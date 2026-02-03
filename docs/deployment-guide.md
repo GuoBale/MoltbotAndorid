@@ -1,13 +1,13 @@
 # Moltbot Gateway Android 部署指南
 
-本指南详细说明如何在 Android 设备上部署 moltbot Gateway，使其能够调用 Android 系统 API。
+本指南详细说明如何在 Android 设备上部署 openclaw Gateway，使其能够调用 Android 系统 API。
 
 ## 目录
 
 1. [环境要求](#1-环境要求)
 2. [安装 Termux](#2-安装-termux)
 3. [配置 Node.js 环境](#3-配置-nodejs-环境)
-4. [安装 moltbot Gateway](#4-安装-moltbot-gateway)
+4. [安装 openclaw Gateway](#4-安装-openclaw-gateway)
 5. [安装 Bridge Service](#5-安装-bridge-service)
 6. [配置和启动](#6-配置和启动)
 7. [验证部署](#7-验证部署)
@@ -105,24 +105,24 @@ echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## 4. 安装 moltbot Gateway
+## 4. 安装 openclaw Gateway
 
 ### 4.1 方式一：从 npm 安装
 
 ```bash
-# 全局安装 moltbot
-npm install -g moltbot
+# 全局安装 openclaw
+npm install -g openclaw
 
 # 验证安装
-moltbot --version
+openclaw --version
 ```
 
 ### 4.2 方式二：从源码安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/moltbot/moltbot.git
-cd moltbot
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
 
 # 安装依赖
 pnpm install
@@ -138,9 +138,9 @@ pnpm link --global
 
 ```bash
 # 初始化配置
-moltbot gateway init
+openclaw gateway init
 
-# 配置文件位置: ~/.clawdbot/clawdbot.json
+# 配置文件位置: ~/.openclaw/openclaw.json
 ```
 
 ### 4.4 安装 Gateway 扩展
@@ -212,7 +212,7 @@ cd android
 
 ### 6.1 配置 Gateway 扩展
 
-编辑 `~/.clawdbot/clawdbot.json`：
+编辑 `~/.openclaw/openclaw.json`：
 
 ```json
 {
@@ -233,13 +233,13 @@ Bridge 地址通过环境变量 `ANDROID_BRIDGE_HOST`（默认 127.0.0.1）、`A
 
 ```bash
 # 前台运行（调试用）
-clawdbot gateway
+openclaw gateway
 
 # 或后台运行
-clawdbot gateway &
+openclaw gateway &
 
 # 使用 nohup 保持运行
-nohup clawdbot gateway > gateway.log 2>&1 &
+nohup openclaw gateway > gateway.log 2>&1 &
 ```
 
 ### 6.3 创建启动脚本
@@ -272,7 +272,7 @@ fi
 
 # 启动 Gateway
 echo "启动 Gateway..."
-exec moltbot gateway --port 18789
+exec openclaw gateway --port 18789
 ```
 
 ```bash
@@ -317,7 +317,7 @@ curl http://localhost:18800/api/v1/health
 curl http://localhost:18789/health
 
 # 检查 Android 工具是否加载
-moltbot gateway tools
+openclaw gateway tools
 # 应显示 android_* 开头的工具
 ```
 
@@ -384,7 +384,7 @@ curl -v http://localhost:18800/api/v1/health
 #### Q: Gateway 工具未加载
 ```bash
 # 检查扩展配置
-cat ~/.clawdbot/clawdbot.json
+cat ~/.openclaw/openclaw.json
 
 # 检查扩展文件是否存在
 ls -la ~/gateway-extension/dist/
@@ -400,17 +400,17 @@ cd ~/gateway-extension && npm run build
 tail -f gateway.log
 
 # 系统日志（需要 root）
-logcat | grep -E "(moltbot|bridge)"
+logcat | grep -E "(openclaw|bridge)"
 ```
 
 ### 8.3 重置配置
 
 ```bash
 # 备份当前配置
-cp ~/.clawdbot/clawdbot.json ~/.clawdbot/clawdbot.json.bak
+cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.bak
 
 # 重新初始化
-moltbot gateway init --force
+openclaw gateway init --force
 ```
 
 ### 8.4 获取帮助
@@ -434,7 +434,7 @@ moltbot gateway init --force
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
-| Gateway 配置 | `~/.clawdbot/clawdbot.json` | 主配置文件 |
+| Gateway 配置 | `~/.openclaw/openclaw.json` | 主配置文件 |
 | Gateway 扩展 | `~/gateway-extension/` | 扩展代码 |
 | 启动脚本 | `~/start-gateway.sh` | 启动脚本 |
 | 日志文件 | `~/gateway.log` | 运行日志 |

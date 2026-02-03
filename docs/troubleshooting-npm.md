@@ -72,7 +72,7 @@ Error: Cannot find module '/bin/npm'
 直接修复 npm 的 shebang 行，无需重新安装：
 
 ```bash
-cd ~/MoltbotAndorid
+cd ~/OpenclawAndroid
 ./scripts/fix-npm-shebang.sh
 ```
 
@@ -87,7 +87,7 @@ cd ~/MoltbotAndorid
 运行项目提供的完整修复脚本：
 
 ```bash
-cd ~/MoltbotAndorid
+cd ~/OpenclawAndroid
 ./scripts/fix-npm.sh
 ```
 

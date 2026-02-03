@@ -1,17 +1,17 @@
 {
-  "name": "moltbot-android-bridge",
+  "name": "openclaw-android-bridge",
   "version": "1.0.0",
-  "description": "Moltbot Gateway extension for Android Bridge Service",
+  "description": "OpenClaw Gateway extension for Android Bridge Service",
   "type": "module",
   "main": "dist/android-bridge.js",
   "types": "dist/android-bridge.d.ts",
   "scripts": {
-    "build": "tsc && cp clawdbot.plugin.json dist/",
+    "build": "tsc && cp openclaw.plugin.json dist/ && cp -r skills dist/",
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },
   "keywords": [
-    "moltbot",
+    "openclaw",
     "android",
     "bridge",
     "gateway"

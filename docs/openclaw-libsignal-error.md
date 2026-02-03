@@ -48,16 +48,16 @@ node /data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js install
 
 **推荐架构：**
 - **PC/Mac/Linux**: 运行 openclaw（包含所有功能）
-- **Android**: 只运行 Gateway（使用 moltbot/clawdbot）+ Bridge Service
+- **Android**: 只运行 Gateway（使用 openclaw）+ Bridge Service
 
 **在手机上只运行 Gateway：**
 
 ```bash
-# 安装 moltbot（用于 Gateway）
-npm install -g moltbot@latest --ignore-scripts
+# 安装 openclaw（用于 Gateway）
+npm install -g openclaw@latest --ignore-scripts
 
 # 启动 Gateway
-moltbot gateway --port 18789
+openclaw gateway --port 18789
 ```
 
 **在 PC 上运行 openclaw：**
@@ -109,7 +109,7 @@ npm run build
 
 **最佳实践：**
 - 在 PC/Mac/Linux 上运行完整的 openclaw
-- 在 Android 上只运行 Gateway（moltbot/clawdbot）+ Bridge Service
+- 在 Android 上只运行 Gateway（openclaw）+ Bridge Service
 - 通过 WebSocket 连接两者
 
 这样可以避免 Android 上的原生模块构建问题，同时充分利用各平台的优势。

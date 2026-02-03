@@ -59,7 +59,7 @@ export NPM_BIN=~/bin/npm-wrapper
 openclaw config
 
 # 或查看配置文件
-cat ~/.clawdbot/clawdbot.json
+cat ~/.openclaw/openclaw.json
 ```
 
 ### 方案 5：手动安装插件（绕过 openclaw）
@@ -75,11 +75,11 @@ npm pack @m1heng-clawd/feishu
 tar -xzf m1heng-clawd-feishu-*.tgz
 
 # 3. 复制到插件目录
-mkdir -p ~/.clawdbot/plugins
-cp -r package/* ~/.clawdbot/plugins/feishu/
+mkdir -p ~/.openclaw/plugins
+cp -r package/* ~/.openclaw/plugins/feishu/
 
 # 4. 安装依赖
-cd ~/.clawdbot/plugins/feishu
+cd ~/.openclaw/plugins/feishu
 npm install
 ```
 
@@ -130,12 +130,12 @@ alias npm='npx npm'
    openclaw plugins install @m1heng-clawd/feishu
    
    # 复制插件目录到手机
-   adb push ~/.clawdbot/plugins/feishu /data/data/com.termux/files/home/.clawdbot/plugins/
+   adb push ~/.openclaw/plugins/feishu /data/data/com.termux/files/home/.openclaw/plugins/
    ```
 
 2. **使用 git clone（如果插件有源码仓库）：**
    ```bash
-   cd ~/.clawdbot/plugins
+   cd ~/.openclaw/plugins
    git clone <plugin-repo-url> feishu
    cd feishu
    npm install

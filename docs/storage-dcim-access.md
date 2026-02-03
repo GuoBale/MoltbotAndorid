@@ -61,7 +61,7 @@ Bridge 应用当前没有被允许通过文件路径直接访问相册/外部存
 
 1. **路径转换（推荐，在飞书扩展里改）**  
    Termux 执行过 `termux-setup-storage` 后，共享存储会挂到 `~/storage/shared`，与 `/storage/emulated/0/` 对应同一块存储。  
-   在飞书扩展里（如 `~/.clawdbot/extensions/feishu/src/media.ts`）在 **`readFileSync(path)` 之前** 对 `path` 做一次转换，例如：
+   在飞书扩展里（如 `~/.openclaw/extensions/feishu/src/media.ts`）在 **`readFileSync(path)` 之前** 对 `path` 做一次转换，例如：
 
    ```ts
    // 在 readFileSync(path) 前添加：将手机存储路径转为 Termux 可读路径

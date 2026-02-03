@@ -1,7 +1,7 @@
-# moltbot 使用 `--ignore-scripts` 安装时的功能清单
+# openclaw 使用 `--ignore-scripts` 安装时的功能清单
 
 在 Android/Termux 等环境使用  
-`npm install -g moltbot@latest --ignore-scripts`  
+`npm install -g openclaw@latest --ignore-scripts`  
 时，以下清单标出**可能受影响**的功能。
 
 ---
@@ -9,10 +9,10 @@
 ## 为什么 Android 上需要加 `--ignore-scripts` 才能部署？
 
 1. **依赖在安装时会跑脚本**  
-   执行 `npm install -g moltbot` 时，npm 会执行**包本身和所有依赖**的 lifecycle 脚本（如 `preinstall`、`postinstall`）。这些脚本里有的会编译/下载原生模块，有的会做系统检测。
+   执行 `npm install -g openclaw` 时，npm 会执行**包本身和所有依赖**的 lifecycle 脚本（如 `preinstall`、`postinstall`）。这些脚本里有的会编译/下载原生模块，有的会做系统检测。
 
 2. **部分依赖明确不支持 Android**  
-   moltbot 的（直接或间接）依赖里，例如 **`@matrix-org/matrix-sdk-crypto-nodejs`**，在 postinstall 里会检测操作系统，遇到 Android 直接报错 **Unsupported OS: android** 并退出。一旦有一个包的脚本失败，整次安装就会失败，所以在 Android/Termux 上「从 npm 安装」或「从源码安装」都可能卡在这一步。
+   openclaw 的（直接或间接）依赖里，例如 **`@matrix-org/matrix-sdk-crypto-nodejs`**，在 postinstall 里会检测操作系统，遇到 Android 直接报错 **Unsupported OS: android** 并退出。一旦有一个包的脚本失败，整次安装就会失败，所以在 Android/Termux 上「从 npm 安装」或「从源码安装」都可能卡在这一步。
 
 3. **`--ignore-scripts` 做了什么**  
    加上 `--ignore-scripts` 后，npm **不会执行任何** preinstall/install/postinstall 等脚本，只解包、装文件。这样就不会触发上述「不支持 Android」的脚本，安装可以完成，Gateway + Android Bridge 就能部署起来。
@@ -27,7 +27,7 @@
 
 | 功能 | 状态 | 说明 |
 |-----|------|------|
-| CLI 入口 `moltbot` / `clawdbot` | ⚠️ | postinstall 会为 `dist/entry.js` 设可执行位；跳过时可能需用 `node .../moltbot.mjs` 或手动 `chmod +x` |
+| CLI 入口 `openclaw` | ⚠️ | postinstall 会为 `dist/entry.js` 设可执行位；跳过时可能需用 `node .../openclaw.mjs` 或手动 `chmod +x` |
 | 依赖补丁（pnpm.patchedDependencies） | ⚠️ | postinstall 负责打补丁；跳过则补丁不生效，部分依赖行为可能与预期不一致 |
 
 ---
@@ -38,7 +38,7 @@
 |-----|------|------|
 | Gateway 服务（WebSocket、工具注册） | ✅ | 不依赖安装时脚本 |
 | Gateway 扩展加载（如 Android Bridge） | ✅ | 不依赖安装时脚本 |
-| Gateway 配置 `~/.clawdbot/clawdbot.json` | ✅ | 不依赖安装时脚本 |
+| Gateway 配置 `~/.openclaw/openclaw.json` | ✅ | 不依赖安装时脚本 |
 | Gateway Canvas / Control UI | ⚠️ | 若依赖 **@napi-rs/canvas** 或 **sharp** 做渲染/图片处理，会受影响 |
 
 ---
@@ -111,7 +111,7 @@
 ## 总结（按使用场景）
 
 - **仅用 Gateway + Android Bridge、不接 Matrix、不用图片/Canvas/本地 LLM**  
-  → 使用 `npm install -g moltbot@latest --ignore-scripts` **通常可行**；注意 CLI 入口可能需用 `node` 或 chmod。
+  → 使用 `npm install -g openclaw@latest --ignore-scripts` **通常可行**；注意 CLI 入口可能需用 `node` 或 chmod。
 
 - **需要 Matrix、图片处理、Canvas、Playwright 浏览器、本地 Llama**  
   → 建议在**支持这些原生模块的环境**下正常安装（不加 `--ignore-scripts`），或在当前环境单独处理对应依赖。

@@ -1,6 +1,6 @@
-# OpenClaw (clawdbot/Moltbot) 平台部署功能对比
+# OpenClaw (openclaw) 平台部署功能对比
 
-本文档从**多个维度**对比在 **Mac OS**、**Linux**、**Windows (WSL2)**、**Android (Termux)** 上部署 OpenClaw（clawdbot/Moltbot）的差异，便于按场景选择部署方式。依据项目文档、脚本及**网络调研**（官方文档、npm/依赖说明、社区问题）整理。
+本文档从**多个维度**对比在 **Mac OS**、**Linux**、**Windows (WSL2)**、**Android (Termux)** 上部署 OpenClaw（openclaw）的差异，便于按场景选择部署方式。依据项目文档、脚本及**网络调研**（官方文档、npm/依赖说明、社区问题）整理。
 
 ---
 
@@ -9,9 +9,9 @@
 | 来源 | Node.js | 操作系统 | 说明 |
 |------|---------|----------|------|
 | **OpenClaw 官方安装页**（[docs.clawd.bot/install](https://docs.clawd.bot/install)） | **Node ≥ 22** | macOS、Linux、**Windows 仅通过 WSL2** | 推荐安装器 `curl -fsSL https://openclaw.ai/install.sh \| bash`；全局安装 `npm install -g openclaw@latest`；从源码需 pnpm；sharp 冲突时可设 `SHARP_IGNORE_GLOBAL_LIBVIPS=1` |
-| **OpenClaw Wiki**（[moltbotwiki.com](https://moltbotwiki.com/installation.html)） | Node 18+ | Windows 10+、macOS 12+、现代 Linux | 安装命令示例为 `npm install -g clawdbot`；配置路径示例 `~/.config/openclaw/config.json`（与本项目 `~/.clawdbot/clawdbot.json` 可能不同） |
+| **OpenClaw Wiki**（[docs.openclaw.ai](https://docs.openclaw.ai/install/installation)） | Node 18+ | Windows 10+、macOS 12+、现代 Linux | 安装命令示例为 `npm install -g openclaw`；配置路径示例 `~/.config/openclaw/config.json`（与本项目 `~/.openclaw/openclaw.json` 可能不同） |
 | **OpenClaw 官方 Android 页**（[docs.clawd.bot/platforms/android](https://docs.clawd.bot/platforms/android)） | — | **Android 为 Node 客户端** | **Android 不 host Gateway**；需在 macOS/Linux/WSL2 上运行 Gateway；Android 通过 WebSocket 连接 Gateway（`ws://<host>:18789`），配对后使用 Chat/Canvas/Camera 等 |
-| **本项目（Moltbot Android Gateway）** | Node ≥ 22.12.0（架构文档） | **Android 上在 Termux 内跑 Gateway** | 与官方「Android 仅 Node 客户端」不同：本方案在手机 Termux 跑 Gateway + 本机 Bridge，需 `--ignore-scripts` 安装 |
+| **本项目（OpenClaw Android Gateway）** | Node ≥ 22.12.0（架构文档） | **Android 上在 Termux 内跑 Gateway** | 与官方「Android 仅 Node 客户端」不同：本方案在手机 Termux 跑 Gateway + 本机 Bridge，需 `--ignore-scripts` 安装 |
 
 ---
 
@@ -21,7 +21,7 @@
 |------|--------|--------|-----------------|-------------------|
 | **运行环境** | 原生 macOS | 原生 Linux | **仅 WSL2 内**（官方推荐 Ubuntu）；原生 Windows 未正式支持 | Termux（需从 F-Droid 安装，不可用 Google Play 版） |
 | **Node.js 要求** | ≥ 22.12.0 | ≥ 22.12.0 | ≥ 22（在 WSL2 内） | ≥ 22.x（Termux 内 `pkg install nodejs-lts`） |
-| **安装方式** | `npm install -g moltbot` 或从源码 | 同 Mac OS | 在 WSL2 内同 Linux；需先启用 systemd（`[boot] systemd=true`）以便 Gateway 服务安装 | 必须 `npm install -g moltbot@latest --ignore-scripts` 或脚本选「从 npm 安装」；**从源码安装会失败** |
+| **安装方式** | `npm install -g openclaw` 或从源码 | 同 Mac OS | 在 WSL2 内同 Linux；需先启用 systemd（`[boot] systemd=true`）以便 Gateway 服务安装 | 必须 `npm install -g openclaw@latest --ignore-scripts` 或脚本选「从 npm 安装」；**从源码安装会失败** |
 | **是否必须 --ignore-scripts** | 否 | 否 | 否 | **是**（否则 postinstall 报 `Unsupported OS: android`） |
 | **额外组件** | 无；若用 Android Bridge 需另有一台手机装 Bridge App | 同 Mac OS | WSL2 + 可选 portproxy 暴露 Gateway 到局域网 | Termux App + **Bridge Service APK**（本机必装） |
 | **包管理器** | npm / pnpm 均可 | 同 Mac OS | 同 Linux（WSL 内） | 推荐 npm；pnpm 可用于其他目录 |
@@ -47,9 +47,9 @@
 | **从 npm 直接安装（无参数）** | ✅ 可用 | ✅ 可用 | ✅ 在 WSL2 内可用 | ❌ **会失败**（见下） |
 | **从 npm 安装且加 --ignore-scripts** | 不需要 | 不需要 | 不需要 | ✅ **推荐**，可成功安装；代价见「功能可用性」 |
 | **依赖补丁（pnpm.patchedDependencies）** | 正常应用 | 正常应用 | 同 Linux | ⚠️ 跳过 postinstall 后**不应用** |
-| **CLI 可执行位（chmod +x）** | postinstall 会设置 | 同左 | 同左 | ⚠️ 可能未设置，需 `chmod +x` 或 `node .../moltbot.mjs` / 脚本启动 |
+| **CLI 可执行位（chmod +x）** | postinstall 会设置 | 同左 | 同左 | ⚠️ 可能未设置，需 `chmod +x` 或 `node .../openclaw.mjs` / 脚本启动 |
 
-**Android 失败原因（外部调研）**：moltbot 依赖 **`@matrix-org/matrix-sdk-crypto-nodejs`** 等，该包预编译二进制仅支持 Linux（aarch64/arm/x86_64 等）、macOS（aarch64/x86_64）、Windows（aarch64/x86_64/i686），**明确不支持 Android**（[npm](https://www.npmjs.com/package/@matrix-org/matrix-sdk-crypto-nodejs)、[GitHub](https://github.com/matrix-org/matrix-rust-sdk-crypto-nodejs)）；postinstall 检测到 Android 即报 `Unsupported OS: android`。
+**Android 失败原因（外部调研）**：openclaw 依赖 **`@matrix-org/matrix-sdk-crypto-nodejs`** 等，该包预编译二进制仅支持 Linux（aarch64/arm/x86_64 等）、macOS（aarch64/x86_64）、Windows（aarch64/x86_64/i686），**明确不支持 Android**（[npm](https://www.npmjs.com/package/@matrix-org/matrix-sdk-crypto-nodejs)、[GitHub](https://github.com/matrix-org/matrix-rust-sdk-crypto-nodejs)）；postinstall 检测到 Android 即报 `Unsupported OS: android`。
 
 ---
 
@@ -74,7 +74,7 @@
 |----------|--------|--------|-----------------|-------------------|
 | **Gateway 服务（WebSocket、工具注册）** | ✅ | ✅ | ✅（WSL2 内） | ✅ |
 | **Gateway 扩展加载（如 Android Bridge）** | ✅ | ✅ | ✅ | ✅ |
-| **Gateway 配置 `~/.clawdbot/clawdbot.json`** | ✅ | ✅ | ✅ | ✅ |
+| **Gateway 配置 `~/.openclaw/openclaw.json`** | ✅ | ✅ | ✅ | ✅ |
 | **Android Bridge 工具（android_*）** | ✅（需手机 Bridge + `ANDROID_BRIDGE_HOST`） | ✅ 同左 | ✅ 同左 | ✅（本机 Bridge，localhost:18800） |
 | **Matrix 渠道** | ✅ | ✅ | ✅ | ❌（@matrix-org/matrix-sdk-crypto-nodejs 无 Android 预编译） |
 | **WhatsApp / Telegram / Discord / Slack / Line / Signal / iMessage** | ✅ | ✅ | ✅ | ✅（纯 JS） |
@@ -91,7 +91,7 @@
 
 ## 5.1 工具调用对比
 
-Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 与 **moltbot 内置/通用工具**（exec、read、web、browser 等）。二者**执行环境与操作对象**不同，按平台对比如下。
+Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 与 **openclaw 内置/通用工具**（exec、read、web、browser 等）。二者**执行环境与操作对象**不同，按平台对比如下。
 
 ### Android Bridge 工具（android_*）
 
@@ -107,7 +107,7 @@ Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 
 
 ### Gateway 内置/通用工具（exec、read、web、browser 等）
 
-由 moltbot 提供，在 **Gateway 所在进程/环境** 执行，**操作对象是「运行 Gateway 的那台机器」**。
+由 openclaw 提供，在 **Gateway 所在进程/环境** 执行，**操作对象是「运行 Gateway 的那台机器」**。
 
 | 维度 | Mac OS | Linux | Windows (WSL2) | Android (Termux) |
 |------|--------|--------|-----------------|-------------------|
@@ -132,7 +132,7 @@ Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 
 
 | 维度 | Mac OS | Linux | Android (Termux) |
 |------|--------|--------|-------------------|
-| **Gateway 配置路径** | `~/.clawdbot/clawdbot.json` | 同左 | 同左（Termux 下 `$HOME` 即 Termux 私有目录） |
+| **Gateway 配置路径** | `~/.openclaw/openclaw.json` | 同左 | 同左（Termux 下 `$HOME` 即 Termux 私有目录） |
 | **扩展入口配置** | `plugins.load.paths` 指向 android-bridge.js | 同左 | 同左；**需用绝对路径**，不可用 `~`（否则插件可能加载失败） |
 | **扩展目录（项目脚本）** | 可同步到 `~/gateway-extension` | 同左 | 同左；安装脚本会把项目内 `gateway-extension` 同步到 `~/gateway-extension` |
 | **数据目录 / 记忆（clawd）** | 可选 `~/clawd`、`~/clawd/memory` 等，由 Operator/飞书侧配置 | 同左 | 同左；未创建时易出现 ENOENT（MEMORY.md / memory/YYYY-MM-DD.md） |
@@ -157,7 +157,7 @@ Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 
 | **后台保活** | 常规进程/daemon 即可 | 同左 | **Termux**：需在系统设置中关闭电池优化、允许后台运行；**Bridge**：前台服务 + 通知栏常驻 |
 | **资源占用（文档预期）** | 无单独数据 | 同左 | Bridge ~50MB，Gateway ~200MB；CPU 空闲 <1%、活跃 <10%；**建议连接电源** |
 | **启动顺序** | 无强制顺序 | 同左 | 先启动 Bridge Service App，再在 Termux 中运行 `./scripts/start-gateway.sh`；脚本会轮询等待 Bridge 健康检查通过 |
-| **常见故障** | Node 版本、端口占用等 | 同左 | **moltbot: command not found**（PATH 未含 npm bin）；**ENOENT MEMORY.md**（未建 ~/clawd）；**从源码/npm 安装失败**（需 --ignore-scripts）；**扩展未加载**（路径用 ~ 或未写 plugins.load.paths） |
+| **常见故障** | Node 版本、端口占用等 | 同左 | **openclaw: command not found**（PATH 未含 npm bin）；**ENOENT MEMORY.md**（未建 ~/clawd）；**从源码/npm 安装失败**（需 --ignore-scripts）；**扩展未加载**（路径用 ~ 或未写 plugins.load.paths） |
 | **健康检查** | `curl http://localhost:18789/health`；Bridge：`curl http://<bridge_host>:18800/api/v1/health` | 同左 | 同左；本机 Bridge 即 `localhost:18800` |
 
 ---
@@ -171,7 +171,7 @@ Gateway 向 Agent 暴露两类工具：**Android Bridge 工具（android_*）** 
 | **start-gateway.sh** | 可用；检查 Bridge 可达性、端口占用 | 同左 | ✅ 可用；**会补 PATH（如 ~/.npm-global/bin）、检测 ON_ANDROID，并支持用 node 直接运行全局包内 cli.js 以规避 npx 在 Termux 上的问题** |
 | **build-bridge-apk.sh** | 可在本机为 Android 构建 APK（需 Android 构建环境） | 同左 | 通常在 PC 上构建，APK 装到手机 |
 | **deploy.sh** | 视脚本内容而定 | 同左 | 视脚本内容而定 |
-| **npx moltbot / 可执行文件** | 一般可用 | 同左 | ⚠️ npx 可能报 "could not determine executable"；脚本已支持用 `node <全局包路径>/dist/cli.js` 启动 |
+| **npx openclaw / 可执行文件** | 一般可用 | 同左 | ⚠️ npx 可能报 "could not determine executable"；脚本已支持用 `node <全局包路径>/dist/cli.js` 启动 |
 
 ---
 

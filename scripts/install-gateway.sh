@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# clawdbot Gateway 安装脚本
+# openclaw Gateway 安装脚本
 # 可从项目根目录或任意目录运行；若在克隆的仓库内运行，会自动使用本项目的 gateway-extension
 #
 
@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo "========================================"
-echo "  安装 clawdbot Gateway"
+echo "  安装 openclaw Gateway"
 echo "========================================"
 echo ""
 
@@ -56,35 +56,35 @@ echo ""
 if [[ $REPLY == "2" ]]; then
     echo "从源码安装..."
     
-    CLAWDBOT_REPO="${CLAWDBOT_REPO:-https://github.com/moltbot/clawdbot.git}"
+    OPENCLAW_REPO="${OPENCLAW_REPO:-https://github.com/openclaw/openclaw.git}"
     NEED_CLONE=""
-    if [ -d ~/clawdbot/.git ]; then
-        if (cd ~/clawdbot && git rev-parse --is-inside-work-tree &>/dev/null); then
-            echo "clawdbot 目录已是 git 仓库，更新..."
-            if ! (cd ~/clawdbot && git pull); then
+    if [ -d ~/openclaw/.git ]; then
+        if (cd ~/openclaw && git rev-parse --is-inside-work-tree &>/dev/null); then
+            echo "openclaw 目录已是 git 仓库，更新..."
+            if ! (cd ~/openclaw && git pull); then
                 echo -e "${YELLOW}git pull 失败（可能是网络问题），将重新克隆...${NC}"
                 NEED_CLONE=1
             fi
         else
-            echo "clawdbot 目录存在但不是有效 git 仓库，将重新克隆..."
+            echo "openclaw 目录存在但不是有效 git 仓库，将重新克隆..."
             NEED_CLONE=1
         fi
     else
-        [ -d ~/clawdbot ] && echo "clawdbot 目录存在但不是 git 仓库，将重新克隆..."
+        [ -d ~/openclaw ] && echo "openclaw 目录存在但不是 git 仓库，将重新克隆..."
         NEED_CLONE=1
     fi
     
     if [ -n "$NEED_CLONE" ]; then
-        [ -d ~/clawdbot ] && rm -rf ~/clawdbot
-        echo "克隆 clawdbot 仓库..."
-        if ! git clone "$CLAWDBOT_REPO" ~/clawdbot; then
+        [ -d ~/openclaw ] && rm -rf ~/openclaw
+        echo "克隆 openclaw 仓库..."
+        if ! git clone "$OPENCLAW_REPO" ~/openclaw; then
             echo -e "${RED}克隆失败。请检查:${NC}"
             echo "  1. 网络是否可访问 github.com（若不可用可尝试代理或 VPN）"
             echo "  2. 终端中执行: git config --global http.proxy http://你的代理地址:端口"
             exit 1
         fi
     fi
-    cd ~/clawdbot
+    cd ~/openclaw
     
     # 安装依赖
     echo "安装依赖..."
@@ -99,10 +99,10 @@ if [[ $REPLY == "2" ]]; then
     fi
 else
     echo "从 npm 安装..."
-    if command -v clawdbot &>/dev/null || npm list -g clawdbot --depth=0 &>/dev/null; then
-        echo -e "${GREEN}clawdbot 已安装，跳过 npm 安装${NC}"
+    if command -v openclaw &>/dev/null || npm list -g openclaw --depth=0 &>/dev/null; then
+        echo -e "${GREEN}openclaw 已安装，跳过 npm 安装${NC}"
     else
-        npm install -g clawdbot
+        npm install -g openclaw
         # Termux 等环境下 PATH 可能未包含 npm 全局 bin，start-gateway.sh 会自动查找
     fi
 fi
@@ -122,13 +122,13 @@ fi
 
 echo ""
 echo "初始化 Gateway 配置..."
-mkdir -p ~/.clawdbot
+mkdir -p ~/.openclaw
 
-# 创建/更新配置文件（clawdbot 使用 ~/.clawdbot/clawdbot.json；扩展通过 plugins.load.paths 加载，Bridge 地址通过环境变量 ANDROID_BRIDGE_HOST / ANDROID_BRIDGE_PORT 配置）
+# 创建/更新配置文件（openclaw 使用 ~/.openclaw/openclaw.json；扩展通过 plugins.load.paths 加载，Bridge 地址通过环境变量 ANDROID_BRIDGE_HOST / ANDROID_BRIDGE_PORT 配置）
 # 使用绝对路径避免 JSON 中 ~ 不被解析导致插件加载失败
 GATEWAY_EXT_PATH="${HOME}/gateway-extension/dist/android-bridge.js"
-if [ ! -f ~/.clawdbot/clawdbot.json ]; then
-    cat > ~/.clawdbot/clawdbot.json << EOF
+if [ ! -f ~/.openclaw/openclaw.json ]; then
+    cat > ~/.openclaw/openclaw.json << EOF
 {
   "plugins": {
     "load": {
@@ -142,10 +142,10 @@ if [ ! -f ~/.clawdbot/clawdbot.json ]; then
   }
 }
 EOF
-    echo "已创建配置文件: ~/.clawdbot/clawdbot.json（含 plugins.load.paths 扩展路径，使用绝对路径）"
+    echo "已创建配置文件: ~/.openclaw/openclaw.json（含 plugins.load.paths 扩展路径，使用绝对路径）"
 else
-    echo "配置文件 ~/.clawdbot/clawdbot.json 已存在"
-    if ! grep -q 'gateway-extension/dist/android-bridge.js' ~/.clawdbot/clawdbot.json 2>/dev/null; then
+    echo "配置文件 ~/.openclaw/openclaw.json 已存在"
+    if ! grep -q 'gateway-extension/dist/android-bridge.js' ~/.openclaw/openclaw.json 2>/dev/null; then
         echo -e "${YELLOW}请在 plugins.load.paths 中添加扩展入口的绝对路径，例如: \"$GATEWAY_EXT_PATH\"，否则 android 工具不会注册。${NC}"
         echo -e "${YELLOW}注意：JSON 中不要用 ~，请写 \$HOME 的实际路径（如 /data/data/com.termux/files/home/...）。${NC}"
     fi
@@ -156,7 +156,7 @@ echo "========================================"
 echo -e "${GREEN}安装完成!${NC}"
 echo "========================================"
 echo ""
-echo "clawdbot 版本: $(clawdbot --version 2>/dev/null || echo '未知')"
+echo "openclaw 版本: $(openclaw --version 2>/dev/null || echo '未知')"
 echo ""
 echo "下一步:"
 echo "  1. 确保 Bridge Service 已在 Android 上运行"

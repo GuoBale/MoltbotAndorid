@@ -19,4 +19,4 @@ gateway-extension/dist/
 *.local
 
 # Nested repo (has own .git)
-moltbot/
+openclaw/

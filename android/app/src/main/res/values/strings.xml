@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Moltbot Bridge</string>
-    <string name="notification_listener_label">Moltbot Bridge</string>
+    <string name="app_name">OpenClaw Bridge</string>
+    <string name="notification_listener_label">OpenClaw Bridge</string>
     <string name="notification_channel_name">Bridge Service</string>
     <string name="notification_channel_description">Bridge Service 运行状态通知</string>
     <string name="notification_title">Bridge Service</string>

@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-Moltbot Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Android 设备的系统 API 和应用。场景（每日播报、快捷操作、联系人分析等）内置在 **gateway-extension** 插件中，随 Gateway 在手机上启动时加载；用户在 Operator/飞书中对话即可触发。
+OpenClaw Android Gateway 项目，使 AI Agent 能够通过 Gateway 调用 Android 设备的系统 API 和应用。场景（每日播报、快捷操作、联系人分析等）内置在 **gateway-extension** 插件中，随 Gateway 在手机上启动时加载；用户在 Operator/飞书中对话即可触发。
 
 详见：[手机上如何使用这些 Skill](docs/skills-usage-on-phone.md)、[Skill 加载说明](docs/skills-loading.md)。
 

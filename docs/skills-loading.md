@@ -29,7 +29,7 @@
    ./scripts/install-gateway.sh
    ```
    - 会把 `gateway-extension/` 同步到 **`~/gateway-extension`** 并执行 `npm run build`，得到 `~/gateway-extension/dist/android-bridge.js`。
-   - 脚本会配置 **`~/.clawdbot/clawdbot.json`**，在 `plugins.load.paths` 里加入该入口，例如：
+   - 脚本会配置 **`~/.openclaw/openclaw.json`**，在 `plugins.load.paths` 里加入该入口，例如：
      ```json
      "plugins": {
        "load": {
@@ -42,11 +42,11 @@
 2. **启动 Gateway（每次要用手机能力时）**  
    在手机 Termux 里执行：
    ```bash
-   cd ~/MoltbotAndorid
+   cd ~/OpenclawAndroid
    ./scripts/start-gateway.sh
    ```
-   - 会启动 clawdbot Gateway（例如 `gateway run --port 18789`）。
-   - Gateway 启动时根据 **clawdbot.json** 的 `plugins.load.paths` 加载 **android-bridge.js**。
+   - 会启动 openclaw Gateway（例如 `gateway run --port 18789`）。
+   - Gateway 启动时根据 **openclaw.json** 的 `plugins.load.paths` 加载 **android-bridge.js**。
    - 插件执行后注册所有 **android_*** 工具（含 **android_scenario_list**、**android_scenario_guide**、**android_system_prompt**），场景内容随之可用。
 
 3. **客户端连接**  

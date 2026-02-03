@@ -48,7 +48,7 @@ echo "临时目录: $TEMP_DIR"
 echo ""
 
 # 创建插件目录
-PLUGIN_DIR="$HOME/.clawdbot/plugins/$(basename "$PLUGIN_NAME" | sed 's/@//' | sed 's/\//-/')"
+PLUGIN_DIR="$HOME/.openclaw/plugins/$(basename "$PLUGIN_NAME" | sed 's/@//' | sed 's/\//-/')"
 echo "插件目录: $PLUGIN_DIR"
 echo ""
 

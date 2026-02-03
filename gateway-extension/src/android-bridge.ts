@@ -1,7 +1,7 @@
 /**
- * Moltbot Android Bridge Extension
+ * OpenClaw Android Bridge Extension
  *
- * 为 clawdbot Gateway 提供 Android API 访问能力
+ * 为 openclaw Gateway 提供 Android API 访问能力
  */
 
 import { AndroidBridgeClient, BridgeConfig } from './android-bridge-client.js';
@@ -15,7 +15,7 @@ export * from './types.js';
 
 /**
  * 插件注册函数
- * clawdbot 插件格式: export default function(api) { ... }
+ * openclaw 插件格式: export default function(api) { ... }
  */
 export default function register(api: any): void {
   console.log('[Android Bridge] Registering plugin...');

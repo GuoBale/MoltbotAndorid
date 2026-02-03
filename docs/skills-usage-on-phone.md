@@ -21,7 +21,7 @@
 ### 2. 在 Termux 里启动 Gateway
 
 ```bash
-cd ~/MoltbotAndorid   # 或你克隆/放置项目的目录
+cd ~/OpenclawAndroid   # 或你克隆/放置项目的目录
 ./scripts/start-gateway.sh
 ```
 
@@ -32,7 +32,7 @@ cd ~/MoltbotAndorid   # 或你克隆/放置项目的目录
 - 若首次使用或刚更新过项目，先在项目目录执行一次：  
   `./scripts/install-gateway.sh`  
   再执行上面的 `./scripts/start-gateway.sh`。
-- 配置文件 `~/.clawdbot/clawdbot.json` 中需包含 `plugins.load.paths`，并指向扩展入口（如 `~/gateway-extension/dist/android-bridge.js`），详见 [README - 如何通过桥接让 clawdbot 读取手机通讯录](../README.md)。
+- 配置文件 `~/.openclaw/openclaw.json` 中需包含 `plugins.load.paths`，并指向扩展入口（如 `~/gateway-extension/dist/android-bridge.js`），详见 [README - 如何通过桥接让 openclaw 读取手机通讯录](../README.md)。
 
 **总结**：手机端只要「Bridge 应用已启动 + Termux 里 Gateway 在跑」，无需在手机上单独配置或复制任何 Skill 文件。
 
@@ -44,7 +44,7 @@ Skill 的「使用」发生在**连接手机 Gateway 的客户端**里，而不�
 
 ### 1. 连接方式
 
-- 在运行 **Clawdbot Operator**（或飞书等对接了 clawdbot 的客户端）的电脑/服务器上，将 **Gateway 地址** 设置为：  
+- 在运行 **OpenClaw Operator**（或飞书等对接了 openclaw 的客户端）的电脑/服务器上，将 **Gateway 地址** 设置为：  
   **`ws://<手机 IP>:18789`**
 - 手机 IP：在手机「设置 → WLAN → 当前网络」查看，或在 Termux 里执行 `ifconfig` / `ip addr` 查看。
 - 确保该电脑/服务器能访问手机的 18789 端口（同一 WiFi 或已做端口转发/内网穿透）。

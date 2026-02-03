@@ -1,6 +1,6 @@
 # Termux 环境配置指南
 
-本指南详细说明如何在 Android 设备上配置 Termux 环境以运行 moltbot Gateway。
+本指南详细说明如何在 Android 设备上配置 Termux 环境以运行 openclaw Gateway。
 
 ## 1. 安装 Termux
 
@@ -10,7 +10,7 @@
 
 **推荐下载源**:
 1. [F-Droid](https://f-droid.org/packages/com.termux/) (推荐)
-2. [GitHub Releases](https://github.com/termux/termux-app/releases)
+2. [GitHub Releases](  )
 
 ### 1.2 安装步骤
 
@@ -160,24 +160,24 @@ git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
-## 5. 安装 moltbot
+## 5. 安装 openclaw
 
 ### 5.1 从 npm 安装
 
 ```bash
 # 全局安装
-npm install -g moltbot
+npm install -g openclaw
 
 # 验证安装
-moltbot --version
+openclaw --version
 ```
 
 ### 5.2 从源码安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/moltbot/moltbot.git
-cd moltbot
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
 
 # 安装依赖
 pnpm install
@@ -189,20 +189,20 @@ pnpm build
 pnpm link --global
 
 # 验证
-moltbot --version
+openclaw --version
 ```
 
 ### 5.3 初始化 Gateway
 
 ```bash
 # 创建配置目录
-mkdir -p ~/.clawdbot
+mkdir -p ~/.openclaw
 
 # 初始化配置
-moltbot gateway init
+openclaw gateway init
 
 # 编辑配置 (可选)
-nano ~/.clawdbot/clawdbot.json
+nano ~/.openclaw/openclaw.json
 ```
 
 ## 6. 配置 Gateway 扩展
@@ -430,7 +430,7 @@ ps aux | grep node
 kill <pid>
 
 # 后台运行
-nohup moltbot gateway > gateway.log 2>&1 &
+nohup openclaw gateway > gateway.log 2>&1 &
 
 # 查看日志
 tail -f gateway.log

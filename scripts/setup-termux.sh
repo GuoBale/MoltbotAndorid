@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Termux 环境配置脚本
-# 用于在 Android Termux 中配置 clawdbot Gateway 运行环境
+# 用于在 Android Termux 中配置 openclaw Gateway 运行环境
 #
 
 set -e
@@ -41,7 +41,7 @@ pkg install -y nodejs-lts
 NODE_VERSION=$(node -v | cut -d'.' -f1 | sed 's/v//')
 if [ "$NODE_VERSION" -lt 22 ]; then
     echo -e "${YELLOW}警告: Node.js 版本 $(node -v) 可能过低${NC}"
-    echo "clawdbot 需要 Node.js >= 22.12.0"
+    echo "openclaw 需要 Node.js >= 22.12.0"
 fi
 
 echo ""
@@ -67,7 +67,7 @@ npm install -g pnpm
 
 echo ""
 echo "步骤 6: 创建工作目录..."
-mkdir -p ~/clawdbot
+mkdir -p ~/.openclaw
 mkdir -p ~/gateway-extension
 
 echo ""
@@ -82,7 +82,7 @@ echo "  pnpm: $(pnpm -v 2>/dev/null || echo '未安装')"
 echo ""
 echo "下一步:"
 echo "  1. 运行 'source ~/.bashrc' 刷新 PATH"
-echo "  2. 运行 './scripts/install-gateway.sh' 安装 clawdbot Gateway"
+echo "  2. 运行 './scripts/install-gateway.sh' 安装 openclaw Gateway"
 echo "  3. 在 Android 上安装 Bridge Service APK"
 echo "  4. 运行 './start-gateway.sh' 启动 Gateway"
 echo ""

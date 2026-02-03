@@ -2,20 +2,20 @@
 
 ## 1. 概述
 
-本文档描述了在 Android 设备上部署 moltbot Gateway 的架构设计。该方案使 Gateway 能够直接调用 Android 系统 API 和应用，实现 AI Agent 对 Android 设备的深度控制。
+本文档描述了在 Android 设备上部署 openclaw Gateway 的架构设计。该方案使 Gateway 能够直接调用 Android 系统 API 和应用，实现 AI Agent 对 Android 设备的深度控制。
 
 ### 1.1 设计目标
 
-- 在 Android 设备上运行完整的 moltbot Gateway
+- 在 Android 设备上运行完整的 openclaw Gateway
 - Gateway 能够调用 Android 系统 API（联系人、应用、媒体等）
-- moltbot 作为第三方库保持不修改
-- 增量代码与 moltbot 代码分离
+- openclaw 作为第三方库保持不修改
+- 增量代码与 openclaw 代码分离
 
 ### 1.2 技术约束
 
 | 约束 | 说明 |
 |------|------|
-| Node.js 版本 | moltbot Gateway 需要 Node.js >= 22.12.0 |
+| Node.js 版本 | openclaw Gateway 需要 Node.js >= 22.12.0 |
 | Android 版本 | 最低 Android 7.0 (API 24) |
 | 网络要求 | 需要本地网络通信能力 |
 
@@ -36,7 +36,7 @@
 │  │           │             │    │  └───────────────────────┘  │ │
 │  │           ▼             │    │             │               │ │
 │  │  ┌───────────────────┐  │    │             ▼               │ │
-│  │  │  moltbot Gateway  │  │    │  ┌───────────────────────┐  │ │
+│  │  │  openclaw Gateway  │  │    │  ┌───────────────────────┐  │ │
 │  │  │    WebSocket      │  │    │  │    Android APIs       │  │ │
 │  │  │    :18789         │◄─┼────┼──│  - ContactsApi        │  │ │
 │  │  └───────────────────┘  │    │  │  - AppsApi            │  │ │
@@ -67,8 +67,8 @@
 
 Termux 是 Android 上的 Linux 终端模拟器，提供完整的 Linux 环境：
 
-- **Node.js 运行时**：运行 Node.js 22+，满足 moltbot 版本要求
-- **moltbot Gateway**：完整的 Gateway 服务端，处理 WebSocket 连接
+- **Node.js 运行时**：运行 Node.js 22+，满足 openclaw 版本要求
+- **openclaw Gateway**：完整的 Gateway 服务端，处理 WebSocket 连接
 - **Gateway Extension**：TypeScript 扩展模块，包含 Android Bridge Client
 
 #### 2.2.2 Bridge Service App
@@ -102,7 +102,7 @@ Termux 是 Android 上的 Linux 终端模拟器，提供完整的 Linux 环境�
 
 ```
 android/
-├── app/src/main/java/com/moltbot/bridge/
+├── app/src/main/java/com/openclaw/bridge/
 │   ├── BridgeApplication.kt      # Application 入口
 │   ├── MainActivity.kt           # 主界面，权限管理
 │   │
@@ -310,7 +310,7 @@ await gateway.invokeTool('android_contacts_list', { query: '张三', limit: 10 }
 |------|------|------|
 | Termux | Android 应用 | 从 F-Droid 安装 |
 | Node.js | Termux 内 | pkg install nodejs-lts |
-| moltbot | Termux 内 | npm install -g moltbot |
+| openclaw | Termux 内 | npm install -g openclaw |
 | Gateway Extension | Termux 内 | 加载扩展模块 |
 | Bridge Service | Android 应用 | 独立 APK 安装 |
 
@@ -322,7 +322,7 @@ await gateway.invokeTool('android_contacts_list', { query: '张三', limit: 10 }
        └── 启动 BridgeServer (HTTP :18800)
 
 2. 在 Termux 中启动 Gateway
-   └── moltbot gateway --port 18789
+   └── openclaw gateway --port 18789
        └── 加载 Gateway Extension
            └── 初始化 AndroidBridgeClient
                └── 连接 http://localhost:18800

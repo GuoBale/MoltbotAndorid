@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.moltbot.bridge"
+    namespace = "com.openclaw.bridge"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.moltbot.bridge"
+        applicationId = "com.openclaw.bridge"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
