@@ -496,11 +496,17 @@ Error: Cannot find module '/bin/npm'
 
 **快速修复：**
 
-1. **运行 shebang 修复脚本（推荐，最快）：**
+1. **先运行诊断脚本（了解问题）：**
+   ```bash
+   ./scripts/diagnose-npm.sh
+   ```
+   这会显示 npm 的详细信息和可能的问题。
+
+2. **运行 shebang 修复脚本（推荐，最快）：**
    ```bash
    ./scripts/fix-npm-shebang.sh
    ```
-   脚本会直接修复 npm 的 shebang 行，无需重新安装。
+   脚本会直接修复 npm 的 shebang 行，使用绝对路径避免路径解析问题。
 
 2. **运行完整修复脚本：**
    ```bash

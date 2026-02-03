@@ -129,28 +129,59 @@ NODE_PATH=$(which node)
 echo "Node 路径: $NODE_PATH"
 
 # 创建新的 npm 脚本
-cat > "$NPM_PATH" << EOF
-#!/bin/sh
-# npm wrapper script - fixed shebang
-basedir=\$(dirname "\$(readlink -f "\$0" 2>/dev/null || echo "\$0")")
-case "\$basedir" in
-    *[\\/]*)
-        basedir=\$(cd "\$basedir" && pwd)
-        ;;
-esac
+# 使用绝对路径，避免任何路径解析问题
+cat > "$NPM_PATH" << 'NPM_SCRIPT_EOF'
+#!/data/data/com.termux/files/usr/bin/sh
+# npm wrapper script - fixed shebang for Termux
+# This script fixes the "/bin/npm" error by using absolute paths
 
-# Try to find node
-if [ -x "\$basedir/node" ]; then
-    "\$basedir/node" "$NPM_CLI_JS" "\$@"
-elif [ -x "$NODE_PATH" ]; then
-    "$NODE_PATH" "$NPM_CLI_JS" "\$@"
-elif command -v node >/dev/null 2>&1; then
-    node "$NPM_CLI_JS" "\$@"
-else
-    echo "Error: node not found" >&2
+# Get absolute paths
+NODE_BIN="/data/data/com.termux/files/usr/bin/node"
+NPM_CLI="/data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js"
+
+# Fallback: try to find node in PATH if absolute path doesn't exist
+if [ ! -x "$NODE_BIN" ]; then
+    if command -v node >/dev/null 2>&1; then
+        NODE_BIN=$(command -v node)
+    else
+        echo "Error: node not found" >&2
+        exit 1
+    fi
+fi
+
+# Fallback: try to find npm-cli.js if absolute path doesn't exist
+if [ ! -f "$NPM_CLI" ]; then
+    # Try common locations
+    SCRIPT_DIR="/data/data/com.termux/files/usr/bin"
+    for path in \
+        "/data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js" \
+        "$SCRIPT_DIR/../lib/node_modules/npm/bin/npm-cli.js" \
+        "$(dirname "$SCRIPT_DIR")/lib/node_modules/npm/bin/npm-cli.js"; do
+        if [ -f "$path" ]; then
+            NPM_CLI="$path"
+            break
+        fi
+    done
+    
+    # If still not found, try using npm config
+    if [ ! -f "$NPM_CLI" ] && command -v node >/dev/null 2>&1; then
+        # Try to find it via node
+        NPM_PREFIX=$(node -e "console.log(require('path').dirname(require.resolve('npm/package.json')))" 2>/dev/null || echo "")
+        if [ -n "$NPM_PREFIX" ] && [ -f "$NPM_PREFIX/bin/npm-cli.js" ]; then
+            NPM_CLI="$NPM_PREFIX/bin/npm-cli.js"
+        fi
+    fi
+fi
+
+# Check if npm-cli.js exists
+if [ ! -f "$NPM_CLI" ]; then
+    echo "Error: npm-cli.js not found at $NPM_CLI" >&2
     exit 1
 fi
-EOF
+
+# Execute npm-cli.js with node
+exec "$NODE_BIN" "$NPM_CLI" "$@"
+NPM_SCRIPT_EOF
 
 # 设置执行权限
 chmod +x "$NPM_PATH"
