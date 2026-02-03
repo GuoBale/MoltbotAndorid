@@ -540,6 +540,38 @@ Error: Cannot find module '/bin/npm'
 **原因说明：**  
 在 Termux 环境中，npm 应该安装在 `/data/data/com.termux/files/usr/bin/npm`，但某些情况下 npm 脚本的 shebang 可能错误地指向 `/bin/npm`。重新安装 Node.js 可以修复这个问题。
 
+**如果修复脚本仍然失败：**  
+错误 "Cannot find module '/bin/npm'" 可能表明 openclaw 在内部尝试 require('/bin/npm')，而不是执行 npm 脚本。这种情况下：
+
+1. **尝试完整修复脚本：**
+   ```bash
+   ./scripts/fix-npm-complete.sh
+   ```
+
+2. **使用手动安装脚本（推荐，绕过 openclaw）：**
+   ```bash
+   ./scripts/install-plugin-manual.sh @m1heng-clawd/feishu
+   ```
+   这个脚本会：
+   - 使用 node 直接执行 npm-cli.js（绕过 npm 脚本问题）
+   - 下载插件包
+   - 解压并复制到插件目录
+   - 安装依赖
+   
+   或者手动安装：
+   ```bash
+   # 下载并手动安装
+   cd /tmp
+   node /data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js pack @m1heng-clawd/feishu
+   tar -xzf m1heng-clawd-feishu-*.tgz
+   mkdir -p ~/.clawdbot/plugins
+   cp -r package/* ~/.clawdbot/plugins/feishu/
+   cd ~/.clawdbot/plugins/feishu
+   node /data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js install
+   ```
+
+3. **查看详细文档：** [修复 openclaw npm 错误](docs/fix-openclaw-npm-error.md)
+
 ### 手机 Termux 上「File has unexpected size」镜像源错误
 
 在安装包时，如果遇到以下错误：
