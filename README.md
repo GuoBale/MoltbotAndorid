@@ -481,8 +481,103 @@ source ~/.bashrc
 - 启动 Gateway：`npx moltbot gateway --port 18789`  
 或直接运行 `./scripts/start-gateway.sh`，脚本会依次尝试：PATH → prefix/bin → ~/moltbot 源码 → **node 运行全局包内 dist/cli.js**（Termux 上 npx 常报 “could not determine executable” 时用此方式）→ npx。
 
-**若 npx 报错 “could not determine executable to run”**  
+**若 npx 报错 "could not determine executable to run"**  
 在 Termux 上常见。脚本已增加：当检测到全局已安装 moltbot 时，用 `node <全局包路径>/dist/cli.js` 直接启动，不依赖 npx。请先 `git pull` 更新脚本后再运行 `./scripts/start-gateway.sh`。
+
+### 手机 Termux 上「Cannot find module '/bin/npm'」错误
+
+在安装插件（如飞书插件 `@m1heng-clawd/feishu`）时，如果遇到以下错误：
+
+```
+Error: Cannot find module '/bin/npm'
+```
+
+这通常是因为 npm 的 shebang 行指向了错误的路径（`/bin/npm` 在 Android 上不存在）。
+
+**快速修复：**
+
+1. **运行修复脚本（推荐）：**
+   ```bash
+   ./scripts/fix-npm.sh
+   ```
+   脚本会自动检测并修复 npm 安装问题。
+
+2. **手动修复：**
+   ```bash
+   # 重新安装 Node.js（包含 npm）
+   pkg reinstall nodejs-lts
+   
+   # 验证修复
+   npm --version
+   which npm
+   ```
+
+3. **如果问题仍然存在：**
+   ```bash
+   # 完全重新安装
+   pkg remove nodejs-lts
+   pkg install nodejs-lts
+   
+   # 重新配置 npm
+   mkdir -p ~/.npm-global
+   npm config set prefix ~/.npm-global
+   echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+**原因说明：**  
+在 Termux 环境中，npm 应该安装在 `/data/data/com.termux/files/usr/bin/npm`，但某些情况下 npm 脚本的 shebang 可能错误地指向 `/bin/npm`。重新安装 Node.js 可以修复这个问题。
+
+### 手机 Termux 上「File has unexpected size」镜像源错误
+
+在安装包时，如果遇到以下错误：
+
+```
+File has unexpected size (522321 != 523280). Mirror sync in progress?
+E: Failed to fetch ... File has unexpected size
+```
+
+这通常是因为 Termux 镜像源正在同步中，或当前镜像源不可用。
+
+**快速修复：**
+
+1. **使用修复脚本（推荐）：**
+   ```bash
+   ./scripts/fix-termux-repo.sh
+   ```
+   脚本会引导你更换可用的镜像源。
+
+2. **使用交互式工具：**
+   ```bash
+   termux-change-repo
+   ```
+   然后选择 "Mirrors hosted in China" 或其他可用镜像。
+
+3. **手动更换镜像源：**
+   ```bash
+   # 编辑镜像源配置
+   nano $PREFIX/etc/apt/sources.list
+   
+   # 或使用清华大学镜像（中国用户推荐）
+   cat > $PREFIX/etc/apt/sources.list << 'EOF'
+   deb [arch=all,arm,aarch64,x86_64] https://mirrors.tuna.tsinghua.edu.cn/termux stable main
+   EOF
+   
+   # 更新包列表
+   pkg update
+   ```
+
+4. **等待后重试：**
+   如果镜像正在同步，等待几分钟后重试：
+   ```bash
+   pkg update
+   pkg install nodejs-lts
+   ```
+
+**常见可用镜像源：**
+- 官方源：`https://termux.org/packages`
+- 清华大学：`https://mirrors.tuna.tsinghua.edu.cn/termux`（中国用户推荐）
+- 其他镜像：运行 `termux-change-repo` 查看完整列表
 
 ### 其他
 
