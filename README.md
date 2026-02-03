@@ -572,6 +572,28 @@ Error: Cannot find module '/bin/npm'
 
 3. **查看详细文档：** [修复 openclaw npm 错误](docs/fix-openclaw-npm-error.md)
 
+### openclaw libsignal 依赖错误
+
+如果遇到 `Cannot find package 'libsignal/index.js'` 错误：
+
+**原因：**  
+openclaw 依赖 `libsignal`（Baileys/WhatsApp 的原生模块），使用 `--ignore-scripts` 安装时未正确构建。
+
+**解决方案：**
+
+1. **使用修复脚本：**
+   ```bash
+   ./scripts/fix-openclaw-libsignal.sh
+   ```
+
+2. **在 PC 上运行 openclaw（推荐）：**  
+   根据官方文档，Android 应该作为客户端连接 Gateway，而不是在 Android 上运行 openclaw。
+   - **PC/Mac/Linux**: 运行完整的 openclaw
+   - **Android**: 只运行 Gateway（moltbot/clawdbot）+ Bridge Service
+   - 通过 WebSocket 连接两者
+
+3. **查看详细文档：** [修复 openclaw libsignal 错误](docs/openclaw-libsignal-error.md)
+
 ### 手机 Termux 上「File has unexpected size」镜像源错误
 
 在安装包时，如果遇到以下错误：
