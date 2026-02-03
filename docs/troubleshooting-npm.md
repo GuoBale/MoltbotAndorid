@@ -67,9 +67,24 @@ Error: Cannot find module '/bin/npm'
 
 ### 解决方案
 
-#### 方法 1：使用修复脚本（推荐）
+#### 方法 1：快速修复 shebang（推荐，最快）
 
-运行项目提供的修复脚本：
+直接修复 npm 的 shebang 行，无需重新安装：
+
+```bash
+cd ~/MoltbotAndorid
+./scripts/fix-npm-shebang.sh
+```
+
+这个脚本会：
+- 检查 npm 的 shebang 行
+- 直接修复错误的路径引用
+- 创建正确的 npm 包装脚本
+- 验证修复是否成功
+
+#### 方法 2：使用完整修复脚本
+
+运行项目提供的完整修复脚本：
 
 ```bash
 cd ~/MoltbotAndorid

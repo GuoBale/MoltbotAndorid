@@ -496,13 +496,19 @@ Error: Cannot find module '/bin/npm'
 
 **快速修复：**
 
-1. **运行修复脚本（推荐）：**
+1. **运行 shebang 修复脚本（推荐，最快）：**
+   ```bash
+   ./scripts/fix-npm-shebang.sh
+   ```
+   脚本会直接修复 npm 的 shebang 行，无需重新安装。
+
+2. **运行完整修复脚本：**
    ```bash
    ./scripts/fix-npm.sh
    ```
    脚本会自动检测并修复 npm 安装问题。
 
-2. **手动修复：**
+3. **手动修复：**
    ```bash
    # 重新安装 Node.js（包含 npm）
    pkg reinstall nodejs-lts
@@ -512,7 +518,7 @@ Error: Cannot find module '/bin/npm'
    which npm
    ```
 
-3. **如果问题仍然存在：**
+4. **如果问题仍然存在：**
    ```bash
    # 完全重新安装
    pkg remove nodejs-lts
